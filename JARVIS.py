@@ -5,7 +5,7 @@ Created on Wed Jul 21 23:37:34 2021
 @author: DELL
 """
 # =============================================================================
-# JARVIS V1.1.0 BETA
+# JARVIS V1.1.1 BETA
 # features: 
 #                   voice control and type control;
 #                   open several websites;
@@ -15,7 +15,7 @@ Created on Wed Jul 21 23:37:34 2021
 # issues:
 #                   slow recognition time;
 #                   limited abilities & responses;
-#                   limited understanding;
+#FIXING             limited understanding;
 #                   no conversational skills;
 #FIXED(1.0.1)       proxy problems;
 #FIXED(1.0.2)       web browser problems
@@ -26,6 +26,7 @@ Created on Wed Jul 21 23:37:34 2021
 # minor change to wikipedia function
 # added silent mode for those who cant access google or dont want to be heard
 # added quit notification
+# added search in google
 # =============================================================================
 import speech_recognition as sr 
 import datetime
@@ -133,6 +134,7 @@ def takeCommand():
         speak("Quitting program...\nGoodbye, sir.")
         sys.exit()
     elif query=='silent mode' or query=='silence mode':
+        query='silent mode'
         return query
     else:
         return "None"
@@ -159,17 +161,22 @@ def main(query):
     logic=''
     # Logic for executing tasks based on query
     # TODO: add more logic
-    if 'search wikipedia for' in query or query.startswith('what is'):
+    if 'wikipedia' in query or query.startswith('what is'):
         logic='wikipedia'
-    if 'youtube' in query:
+    elif 'youtube' in query:
         logic='youtube'
-    if 'google' in query:
+    elif 'search for' in query and 'in google' in query:
+        logic='search google'
+        query=query.replace("search for",'')
+        query=query.replace('in google','')
+        query=query.replace(" ",'+')
+    elif 'google' in query:
         logic='google'
-    if 'stackoverflow' in query:
+    elif 'stackoverflow' in query:
         logic='stackoverflow'
     
-        
-        
+    
+    
         
     if logic=='wikipedia':
         query = query.replace("search wikipedia for", "")
@@ -191,6 +198,8 @@ def main(query):
     elif logic=='stackoverflow':
         net("https://www.stackoverflow.com")   
 
+    elif logic=='search google':
+        net("https://www.google.com/search?q="+query)
 
     elif 'play music' in query:
         music_dir = r'D:\Music'
@@ -223,13 +232,13 @@ def main(query):
                 if event == sg.WIN_CLOSED or event == 'Cancel': 
                     break 
             window.close()
-
+            sendEmail(to, content)
             speak("Email has been sent!")
         except Exception as e:
             print(e)
-            speak("ERROR")    
+            speak("ERROR")      
         
-        
+                
         
         
         
