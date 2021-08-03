@@ -1,21 +1,40 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jul 21 23:37:34 2021
-
-@author: DELL
+pip install:================================================================= FIXME:Can this be done automatically
+Pillow	8.3.1	8.3.1
+PyAudio	0.2.11	0.2.11 (might need whl)
+PySimpleGUI	4.45.0	4.45.0
+SpeechRecognition	3.8.1	3.8.1
+matplotlib	3.4.2
+nltk	3.6.2
+numpy	1.19.5
+pandas	1.3.1
+pyttsx3	2.90
+pywin32	301
+scikit-learn	0.24.2
+silence-tensorflow	1.1.1
+tensorflow	2.5.0
+wikipedia	1.4.0
+=============================================================================
+please: set the path and check other FIXMEs
+        unzip intent.zip TODO: done by program
+@author: Joe Tom
 """
 # =============================================================================
-# JARVIS V1.1.1 BETA
-# features: 
-#                   voice control and type control;
-#                   open several websites;
-#                   play music (suffle only);
-#                   tell time;
-#                   send email
+# JARVIS V1.2.1 BETA
+# features:
+#                   speak;(v1.2.1)
+#                   voice control and type control;(v1.0.2)
+#                   open several websites;(v1.0.2)
+#                   play music (suffle only);(v1.0.1)
+#                   tell time;(v1.0.1)
+#                   send email;(v1.0.1)
 # issues:
+#                   awkward pronunciation;     (->search better lib)
 #                   slow recognition time;
 #                   limited abilities & responses;
-# FIXING             limited understanding;
+# FIXING             limited understanding;    (->enlarge database/->reduce intents)
 #                   no conversational skills;
 # FIXED(1.0.1)       proxy problems;
 # FIXED(1.0.2)       web browser problems
@@ -28,6 +47,7 @@ Created on Wed Jul 21 23:37:34 2021
 # added quit notification;
 # added search in google
 # =============================================================================
+import pyttsx3
 import speech_recognition as sr
 import datetime
 import wikipedia
@@ -42,7 +62,6 @@ import pandas as pd
 from silence_tensorflow import silence_tensorflow
 
 silence_tensorflow()
-import tensorflow
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
@@ -57,12 +76,21 @@ from tensorflow.keras import layers
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
-proxy = "http://127.0.0.1:15732"
+proxy = "http://127.0.0.1:15732"  # FIXME:need to change
 os.environ['http_proxy'] = proxy
 os.environ['HTTP_PROXY'] = proxy
 os.environ['https_proxy'] = proxy
 os.environ['HTTPS_PROXY'] = proxy
 
+engine = pyttsx3.init('sapi5', True)
+engine.setProperty('rate', 225)  # setting up new voice rate
+voices = engine.getProperty('voices')  # get system voice pack
+engine.setProperty('voice', voices[2].id)  # changing index, changes voices. 2 for male
+
+# PROJECT_PATH=r"D:\Everything\科研\Python\JARVIS project"
+# PROJECT_PATH = r"D:\programming\J.A.R.V.I.S-project(fork)"  # FIXED:automatic
+# print(sys.path[0])
+PROJECT_PATH = sys.path[0]
 
 def load_dataset(filename):
     df = pd.read_csv(filename, encoding="latin1", names=["Sentence", "Intent"])
@@ -73,7 +101,7 @@ def load_dataset(filename):
     return intent, unique_intent, sentences
 
 
-intent, unique_intent, sentences = load_dataset(r"D:\Everything\科研\Python\JARVIS project\Dataset-train.csv")
+intent, unique_intent, sentences = load_dataset(PROJECT_PATH+r"\Dataset-train.csv")
 stemmer = LancasterStemmer()
 
 
@@ -212,10 +240,15 @@ webbrowser.register('chrome', webbrowser.BackgroundBrowser(chrome_path), 1)
 webbrowser.get('chrome')
 
 
-def speak(msg):  # popup windows actually
+def speak(msg,msg_show=0):  # popup windows actually
+    engine.say(msg)
+    if(msg_show!=0):
+        msg=msg_show
     speak_layout = [[sg.Text(msg)]]
     window = sg.Window('J.A.R.V.I.S.', speak_layout, auto_close=True, auto_close_duration=2)
     event, values = window.read()
+    engine.runAndWait()
+    #print(msg)
 
 
 def wiki(content):  # search wikipedia
@@ -240,7 +273,7 @@ def wishMe():
         t = "Good evening"
     greetinglist = ["How may I help you?", "How can I be of service today?", "Good to see you again.",
                     "Hope you are well?"]
-    speak(t + ", sir. " + random.choice(greetinglist))
+    speak(t + " sir. " + random.choice(greetinglist))
 
 
 def SilentlyTakeCommand():
@@ -255,7 +288,7 @@ def SilentlyTakeCommand():
             break
     window.close()
     if 'exit' in query or 'quit' in query:
-        speak("Quitting program...\nGoodbye, sir.")
+        speak("Quitting program...\nGoodbye.","Quitting program...\nGoodbye, sir.")
         sys.exit()
     return query
 
@@ -280,7 +313,7 @@ def takeCommand():
     if query.startswith('hey Jarvis'):
         return query
     elif 'exit' in query or 'quit' in query:
-        speak("Quitting program...\nGoodbye, sir.")
+        speak("Quitting program...\nGoodbye.")
         sys.exit()
     elif query == 'silent mode' or query == 'silence mode':
         query = 'silent mode'
