@@ -22,8 +22,9 @@ please: set the path and check other FIXMEs
 @author: Joe Tom
 """
 # =============================================================================
-# JARVIS V1.2.1 BETA
+# JARVIS V1.2.2 BETA
 # features:
+#                   autopiptool;(v1.2.2)
 #                   speak;(v1.2.1)
 #                   voice control and type control;(v1.0.2)
 #                   open several websites;(v1.0.2)
@@ -34,10 +35,11 @@ please: set the path and check other FIXMEs
 #                   awkward pronunciation;     (->search better lib)
 #                   slow recognition time;
 #                   limited abilities & responses;
-# FIXING             limited understanding;    (->enlarge database/->reduce intents)
+# FIXING             limited understanding;    (->enlarge database)
 #                   no conversational skills;
 # FIXED(1.0.1)       proxy problems;
 # FIXED(1.0.2)       web browser problems
+# FIXED(1.2.2)       improving understanding   (->reduce intents)
 # =============================================================================
 # =============================================================================
 # fixed proxys;
@@ -48,6 +50,7 @@ please: set the path and check other FIXMEs
 # added search in google
 # =============================================================================
 from init_venv import *
+
 pipList = ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
            "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re"]
 
@@ -155,9 +158,6 @@ def cleaning(sentences):
     return words
 
 
-cleaned_words = cleaning(sentences)
-
-
 def create_tokenizer(words, filters='!"#$%&()*+,-./:;<=>?@[\]^_`{|}~'):
     token = Tokenizer(filters=filters)
     token.fit_on_texts(words)
@@ -168,26 +168,22 @@ def max_length(words):
     return len(max(words, key=len))
 
 
-word_tokenizer = create_tokenizer(cleaned_words)
-vocab_size = len(word_tokenizer.word_index) + 1
-max_length = max_length(cleaned_words)
-
-
 def encoding_doc(token, words):
     return token.texts_to_sequences(words)
-
-
-encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
 
 
 def padding_doc(encoded_doc, max_length):
     return pad_sequences(encoded_doc, maxlen=max_length, padding="post")
 
 
+cleaned_words = cleaning(sentences)
+word_tokenizer = create_tokenizer(cleaned_words)
+encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
+
+# vocab_size = len(word_tokenizer.word_index) + 1 #didn't used?
+max_length = max_length(cleaned_words)
 padded_doc = padding_doc(encoded_doc, max_length)
-
 output_tokenizer = create_tokenizer(unique_intent, filters='!"#$%&()*+,-/:;<=>?@[\]^`{|}~')
-
 encoded_output = encoding_doc(output_tokenizer, intent)
 
 x = []
@@ -273,7 +269,7 @@ music_layout = [[sg.Text('J.A.R.V.I.S. music player')],
                 [sg.Button('Shuffle music'), sg.Button('Cancel')]]
 
 # browser settings
-chrome_path = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+chrome_path = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" #true on windows if not reinstalled
 
 webbrowser.register('chrome', webbrowser.BackgroundBrowser(chrome_path), 1)
 webbrowser.get('chrome')
