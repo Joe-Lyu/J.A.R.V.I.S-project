@@ -47,50 +47,89 @@ please: set the path and check other FIXMEs
 # added quit notification;
 # added search in google
 # =============================================================================
-import pyttsx3
-import speech_recognition as sr
-import datetime
-import wikipedia
-import webbrowser
-import os
-import sys
-import smtplib
-import random
-import PySimpleGUI as sg
-import numpy as np
-import pandas as pd
-from silence_tensorflow import silence_tensorflow
+from init_venv import *
+pipList = ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
+           "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re"]
 
-silence_tensorflow()
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem.lancaster import LancasterStemmer
-import nltk
-import re
-from sklearn.preprocessing import OneHotEncoder
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.callbacks import ModelCheckpoint
-from sklearn.model_selection import train_test_split
-from tensorflow.keras import layers
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+# import...
+try:
+    import pyttsx3
+    import speech_recognition as sr
+    import datetime
+    import wikipedia
+    import webbrowser
+    import os
+    import sys
+    import smtplib
+    import random
+    import PySimpleGUI as sg
+    import numpy as np
+    import pandas as pd
+    from silence_tensorflow import silence_tensorflow
 
+    silence_tensorflow()
+    from nltk.corpus import stopwords
+    from nltk.tokenize import word_tokenize
+    from nltk.stem.lancaster import LancasterStemmer
+    import nltk
+    import re
+    from sklearn.preprocessing import OneHotEncoder
+    from tensorflow.keras.preprocessing.text import Tokenizer
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
+    from tensorflow.keras.callbacks import ModelCheckpoint
+    from sklearn.model_selection import train_test_split
+    from tensorflow.keras import layers
+    import tensorflow as tf
+    from tensorflow.keras.models import load_model
+except ModuleNotFoundError as e:
+    check = install_package_check(pipList)
+    if check is not True:
+        print("FalseList=", check)
+finally:
+    import pyttsx3
+    import speech_recognition as sr
+    import datetime
+    import wikipedia
+    import webbrowser
+    import os
+    import sys
+    import smtplib
+    import random
+    import PySimpleGUI as sg
+    import numpy as np
+    import pandas as pd
+    from silence_tensorflow import silence_tensorflow
+
+    silence_tensorflow()
+    from nltk.corpus import stopwords
+    from nltk.tokenize import word_tokenize
+    from nltk.stem.lancaster import LancasterStemmer
+    import nltk
+    import re
+    from sklearn.preprocessing import OneHotEncoder
+    from tensorflow.keras.preprocessing.text import Tokenizer
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
+    from tensorflow.keras.callbacks import ModelCheckpoint
+    from sklearn.model_selection import train_test_split
+    from tensorflow.keras import layers
+    import tensorflow as tf
+    from tensorflow.keras.models import load_model
+
+# proxy
 proxy = "http://127.0.0.1:15732"  # FIXME:need to change
 os.environ['http_proxy'] = proxy
 os.environ['HTTP_PROXY'] = proxy
 os.environ['https_proxy'] = proxy
 os.environ['HTTPS_PROXY'] = proxy
 
+# voice initiation
 engine = pyttsx3.init('sapi5', True)
 engine.setProperty('rate', 225)  # setting up new voice rate
 voices = engine.getProperty('voices')  # get system voice pack
 engine.setProperty('voice', voices[2].id)  # changing index, changes voices. 2 for male
 
-# PROJECT_PATH=r"D:\Everything\科研\Python\JARVIS project"
-# PROJECT_PATH = r"D:\programming\J.A.R.V.I.S-project(fork)"  # FIXED:automatic
-# print(sys.path[0])
 PROJECT_PATH = sys.path[0]
+
 
 def load_dataset(filename):
     df = pd.read_csv(filename, encoding="latin1", names=["Sentence", "Intent"])
@@ -101,7 +140,7 @@ def load_dataset(filename):
     return intent, unique_intent, sentences
 
 
-intent, unique_intent, sentences = load_dataset(PROJECT_PATH+r"\Dataset-train.csv")
+intent, unique_intent, sentences = load_dataset(PROJECT_PATH + r"\Dataset-train.csv")
 stemmer = LancasterStemmer()
 
 
@@ -240,15 +279,15 @@ webbrowser.register('chrome', webbrowser.BackgroundBrowser(chrome_path), 1)
 webbrowser.get('chrome')
 
 
-def speak(msg,msg_show=0):  # popup windows actually
+def speak(msg, msg_show=0):  # popup windows actually
     engine.say(msg)
-    if(msg_show!=0):
-        msg=msg_show
+    if (msg_show != 0):
+        msg = msg_show
     speak_layout = [[sg.Text(msg)]]
     window = sg.Window('J.A.R.V.I.S.', speak_layout, auto_close=True, auto_close_duration=2)
     event, values = window.read()
     engine.runAndWait()
-    #print(msg)
+    # print(msg)
 
 
 def wiki(content):  # search wikipedia
@@ -288,7 +327,7 @@ def SilentlyTakeCommand():
             break
     window.close()
     if 'exit' in query or 'quit' in query:
-        speak("Quitting program...\nGoodbye.","Quitting program...\nGoodbye, sir.")
+        speak("Quitting program...\nGoodbye.", "Quitting program...\nGoodbye, sir.")
         sys.exit()
     return query
 
