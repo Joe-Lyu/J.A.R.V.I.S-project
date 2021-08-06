@@ -144,13 +144,13 @@ def load_dataset(filename):
 
 
 intent, unique_intent, sentences = load_dataset(PROJECT_PATH + r"\Dataset-train.csv")
-stemmer = LancasterStemmer()
+#stemmer = LancasterStemmer()
 
 
-def cleaning(sentences):
+def cleaning(sentences):  # sentence List->tokenized sentence List
     words = []
     for s in sentences:
-        clean = re.sub(r'[^ a-z A-Z 0-9]', " ", s)
+        clean = re.sub(r'[^ a-z A-Z 0-9]', " ", s)  #substitute none alphabet and num into space (sentences by sentences)
         w = word_tokenize(clean)
         # stemming
         words.append([i.lower() for i in w])
@@ -164,25 +164,26 @@ def create_tokenizer(words, filters='!"#$%&()*+,-./:;<=>?@[\]^_`{|}~'):
     return token
 
 
-def max_length(words):
+def max_length(words):  # longest sentence word-count
     return len(max(words, key=len))
 
 
-def encoding_doc(token, words):
+def encoding_doc(token, words):  # 编码
     return token.texts_to_sequences(words)
 
 
 def padding_doc(encoded_doc, max_length):
     return pad_sequences(encoded_doc, maxlen=max_length, padding="post")
 
-
+#for sentence
 cleaned_words = cleaning(sentences)
 word_tokenizer = create_tokenizer(cleaned_words)
 encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
-
 # vocab_size = len(word_tokenizer.word_index) + 1 #didn't used?
 max_length = max_length(cleaned_words)
 padded_doc = padding_doc(encoded_doc, max_length)
+
+# for intent
 output_tokenizer = create_tokenizer(unique_intent, filters='!"#$%&()*+,-/:;<=>?@[\]^`{|}~')
 encoded_output = encoding_doc(output_tokenizer, intent)
 
@@ -211,14 +212,14 @@ inputs = tf.keras.Input(shape=(None,), dtype="int64")
 x = layers.Embedding(max_features, embedding_dim)(inputs)
 x = layers.Dropout(0.5)(x)
 
-x = layers.Conv1D(128, 7, padding="valid", activation="relu", strides=3)(x)
-x = layers.Conv1D(128, 7, padding="valid", activation="relu", strides=3)(x)
+x = layers.Conv1D(128, 6, padding="valid", activation="relu", strides=3)(x)
+x = layers.Conv1D(128, 6, padding="valid", activation="relu", strides=3)(x)
 x = layers.GlobalMaxPooling1D()(x)
 
 x = layers.Dense(128, activation="relu")(x)
 x = layers.Dropout(0.5)(x)
 
-predictions = layers.Dense(151, activation="sigmoid", name="predictions")(x)
+predictions = layers.Dense(39, activation="sigmoid", name="predictions")(x)
 
 model = tf.keras.Model(inputs, predictions)
 

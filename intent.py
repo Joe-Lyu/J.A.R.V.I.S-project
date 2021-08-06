@@ -23,12 +23,15 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, LSTM, Bidirectional, Embedding, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
-
+import sys
 proxy = "http://127.0.0.1:15732"
 os.environ['http_proxy'] = proxy 
 os.environ['HTTP_PROXY'] = proxy
 os.environ['https_proxy'] = proxy
 os.environ['HTTPS_PROXY'] = proxy
+
+PROJECT_PATH = sys.path[0]
+
 def load_dataset(filename):
     df = pd.read_csv(filename, encoding = "latin1", names = ["Sentence", "Intent"])
     intent = df["Intent"]
@@ -37,7 +40,7 @@ def load_dataset(filename):
     
     return (intent, unique_intent, sentences)
 
-intent, unique_intent, sentences = load_dataset(r"D:\Everything\科研\Python\JARVIS project\Dataset-train.csv")
+intent, unique_intent, sentences = load_dataset(PROJECT_PATH+r"\Dataset-train.csv")
 stemmer = LancasterStemmer()
 def cleaning(sentences):
     words = []
