@@ -9,28 +9,27 @@ import numpy as np
 import pandas as pd
 from  silence_tensorflow import silence_tensorflow
 silence_tensorflow()
+import tensorflow
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
 import nltk
 import re
 from sklearn.preprocessing import OneHotEncoder
-import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, LSTM, Bidirectional, Embedding, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
-import sys
+from tensorflow.keras import layers
+import tensorflow as tf
+from tensorflow.keras.models import  load_model
 proxy = "http://127.0.0.1:15732"
 os.environ['http_proxy'] = proxy 
 os.environ['HTTP_PROXY'] = proxy
 os.environ['https_proxy'] = proxy
 os.environ['HTTPS_PROXY'] = proxy
 
-PROJECT_PATH = sys.path[0]
+
 
 def load_dataset(filename):
     df = pd.read_csv(filename, encoding = "latin1", names = ["Sentence", "Intent"])
@@ -40,7 +39,7 @@ def load_dataset(filename):
     
     return (intent, unique_intent, sentences)
 
-intent, unique_intent, sentences = load_dataset(PROJECT_PATH+r"\Dataset-train.csv")
+intent, unique_intent, sentences = load_dataset(r"D:\Everything\科研\Python\JARVIS project\Dataset-train.csv")
 stemmer = LancasterStemmer()
 def cleaning(sentences):
     words = []
@@ -96,26 +95,34 @@ output_one_hot = one_hot(encoded_output)
 
 train_X, val_X, train_Y, val_Y = train_test_split(padded_doc, output_one_hot, shuffle = True, test_size = 0.2)
 
-def create_model(vocab_size, max_length):
-    model = Sequential()
-    model.add(Embedding(vocab_size, 128, input_length = max_length, trainable = False))
-    model.add(Bidirectional(LSTM(128)))
-    #model.add(LSTM(128))
-    model.add(Dense(32, activation = "relu"))
-    model.add(Dropout(0.3))
-    model.add(Dense(32, activation = "relu"))
-    model.add(Dropout(0.3))
-    model.add(Dense(150, activation = "softmax"))
 
-    return model
 
-model = create_model(vocab_size, max_length)
-import tensorflow
-opt=tensorflow.keras.optimizers.Adam(learning_rate=9e-4)
-model.compile(loss = "categorical_crossentropy", optimizer = opt, metrics = ["accuracy"])
+
+max_features = 15000
+embedding_dim = 128
+sequence_length = 500
+inputs = tf.keras.Input(shape=(None,), dtype="int64")
+
+x = layers.Embedding(max_features, embedding_dim)(inputs)
+x = layers.Dropout(0.5)(x)
+
+x = layers.Conv1D(128, 7, padding="valid", activation="relu", strides=3)(x)
+x = layers.Conv1D(128, 7, padding="valid", activation="relu", strides=3)(x)
+x = layers.GlobalMaxPooling1D()(x)
+
+x = layers.Dense(128, activation="relu")(x)
+x = layers.Dropout(0.5)(x)
+
+predictions = layers.Dense(151, activation="sigmoid", name="predictions")(x)
+
+model = tf.keras.Model(inputs, predictions)
+
+model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+
 
 filename = 'intent.h5'
 checkpoint = ModelCheckpoint(filename, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+hist = model.fit(train_X, train_Y, epochs = 100, batch_size = 32, validation_data = (val_X, val_Y), callbacks = [checkpoint])
 model = load_model("intent.h5")
 
 # model_training
@@ -146,13 +153,12 @@ def get_final_output(pred, classes):
   classes = classes[ids]
   predictions = -np.sort(-predictions)
  
-  for i in range(pred.shape[1]):
-    print("%s has confidence = %s" % (classes[i], (predictions[i])))
+  return classes[0],predictions[0]
 
 
-text = "how to say Jarvis in french"
+text = "translate jarvis to french"
 pred = predictions(text)
-get_final_output(pred, unique_intent)
+intent,confidence=get_final_output(pred, unique_intent)
 
 
 
