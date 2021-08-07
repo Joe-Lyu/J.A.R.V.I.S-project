@@ -117,6 +117,9 @@ model.compile(loss = "categorical_crossentropy", optimizer = opt, metrics = ["ac
 filename = 'intent.h5'
 checkpoint = ModelCheckpoint(filename, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 model = load_model("intent.h5")
+
+# model_training
+#hist= model.fit(train_X,train_Y,epochs=15,batch_size=32,validation_data=(val_X,val_Y),callbacks=[checkpoint])
 def predictions(text):
   clean = re.sub(r'[^ a-z A-Z 0-9]', " ", text)
   test_word = word_tokenize(clean)

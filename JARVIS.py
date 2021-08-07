@@ -50,7 +50,8 @@ please: set the path and check other FIXMEs
 # added search in google
 # =============================================================================
 from init_venv import *
-
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"  #FIXME manditorily use cpu to train
 pipList = ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
            "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re"]
 
@@ -70,7 +71,7 @@ try:
     import pandas as pd
     from silence_tensorflow import silence_tensorflow
 
-    silence_tensorflow()
+    #silence_tensorflow()
     from nltk.corpus import stopwords
     from nltk.tokenize import word_tokenize
     from nltk.stem.lancaster import LancasterStemmer
@@ -164,7 +165,7 @@ def create_tokenizer(words, filters='!"#$%&()*+,-./:;<=>?@[\]^_`{|}~'):
     return token
 
 
-def max_length(words):  # longest sentence word-count
+def get_max_length(words):  # longest sentence word-count
     return len(max(words, key=len))
 
 
@@ -180,7 +181,7 @@ cleaned_words = cleaning(sentences)
 word_tokenizer = create_tokenizer(cleaned_words)
 encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
 # vocab_size = len(word_tokenizer.word_index) + 1 #didn't used?
-max_length = max_length(cleaned_words)
+max_length = get_max_length(cleaned_words)
 padded_doc = padding_doc(encoded_doc, max_length)
 
 # for intent
@@ -212,8 +213,8 @@ inputs = tf.keras.Input(shape=(None,), dtype="int64")
 x = layers.Embedding(max_features, embedding_dim)(inputs)
 x = layers.Dropout(0.5)(x)
 
-x = layers.Conv1D(128, 6, padding="valid", activation="relu", strides=3)(x)
-x = layers.Conv1D(128, 6, padding="valid", activation="relu", strides=3)(x)
+x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
+x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
 x = layers.GlobalMaxPooling1D()(x)
 
 x = layers.Dense(128, activation="relu")(x)
@@ -228,6 +229,7 @@ model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
 filename = 'intent.h5'
 checkpoint = ModelCheckpoint(filename, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 model = load_model("intent.h5")
+#hist= model.fit(train_X,train_Y,epochs=105,batch_size=32,validation_data=(val_X,val_Y),callbacks=[checkpoint])
 
 
 def predictions(text):
