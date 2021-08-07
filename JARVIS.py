@@ -133,7 +133,7 @@ voices = engine.getProperty('voices')  # get system voice pack
 engine.setProperty('voice', voices[2].id)  # changing index, changes voices. 2 for male
 
 PROJECT_PATH = sys.path[0]
-
+print("PATH=",sys.path[0])
 
 def load_dataset(filename):
     df = pd.read_csv(filename, encoding="latin1", names=["Sentence", "Intent"])
