@@ -42,14 +42,14 @@ class Seq2Seq(keras.Model):
         )
 
         self.cross_entropy = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        self.opt = keras.optimizers.Adam(0.01)
+        self.opt = keras.optimizers.Adam(0.002)
         self.max_pred_len = max_pred_len
         self.start_token = start_token
         self.end_token = end_token
 
     def encode(self, x):
         embedded = self.enc_embeddings(x)
-        init_s = [tf.zeros((x.shape[0], self.units)), tf.zeros((x.shape[0], self.units))]
+        init_s = [tf.zeros((x.shape[0], self.units)), tf.zeros((x.shwape[0], self.units))]
         o, h, c = self.encoder(embedded, initial_state=init_s)
         return [h, c]
 
@@ -99,10 +99,10 @@ def train():
         max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
 
     # training
-    for t in range(1500):
+    for t in range(150000):
         bx, by, decoder_len = data.sample(32)
         loss = model.step(bx, by, decoder_len)
-        if t % 7 == 0:
+        if t % 70 == 0:
             target = data.idx2str(by[0, 1:-1])
             pred = model.inference(bx[0:1])
             res = data.idx2str(pred[0])

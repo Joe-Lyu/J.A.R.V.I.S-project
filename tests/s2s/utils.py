@@ -23,8 +23,8 @@ def load_dataset(filename):
 def get_preprocessed_info(sentences, flag=0):  # sentence List->tokenized sentence List
     words = []
     for s in sentences:
-        clean = re.sub(r'[^ a-z A-Z 0-9]', " ",
-                       s)  # substitute none alphabet and num into space (sentences by sentences)
+        clean = re.sub(r'[^ a-z A-Z 0-9]', " ",s)  # substitute none alphabet and num into space (sentences by sentences)
+        clean = re.sub(r' b-z ', " ", s)
         w = word_tokenize(clean)
         # stemming
         tokenized_word = [i.lower() for i in w]
