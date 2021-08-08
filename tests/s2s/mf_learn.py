@@ -19,17 +19,17 @@ class Seq2Seq(keras.Model):
             input_dim=enc_v_dim, output_dim=emb_dim,  # [enc_n_vocab, emb_dim]
             embeddings_initializer=tf.initializers.RandomNormal(0., 0.1),
         )
-        self.encoder = keras.layers.LSTM(units=units, return_sequences=True, return_state=True)
+        self.encoder = keras.layers.LSTM(units=units, return_sequences=True, return_state=True)  # encoder是整个LSTM模型
 
         # decoder
         self.dec_embeddings = keras.layers.Embedding(
             input_dim=dec_v_dim, output_dim=emb_dim,  # [dec_n_vocab, emb_dim]
             embeddings_initializer=tf.initializers.RandomNormal(0., 0.1),
         )
-        self.decoder_cell = keras.layers.LSTMCell(units=units)  #decode不管输出
+        self.decoder_cell = keras.layers.LSTMCell(units=units)  # LSTMcell 是个体元素
         decoder_dense = keras.layers.Dense(dec_v_dim)
         # train decoder
-        self.decoder_train = tfa.seq2seq.BasicDecoder(
+        self.decoder_train = tfa.seq2seq.BasicDecoder(  # 由cell(和dense)构成decoder
             cell=self.decoder_cell,
             sampler=tfa.seq2seq.sampler.TrainingSampler(),  # sampler for train
             output_layer=decoder_dense
@@ -95,14 +95,14 @@ def train():
     #       "\ny index sample: \n{}\n{}".format(data.idx2str(data.y[0]), data.y[0]))
 
     model = Seq2Seq(
-        data.num_word, data.num_word, emb_dim=16, units=32,
+        data.num_word+1, data.num_word+1, emb_dim=16, units=32,
         max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
 
     # training
     for t in range(1500):
         bx, by, decoder_len = data.sample(32)
         loss = model.step(bx, by, decoder_len)
-        if t % 70 == 0:
+        if t % 7 == 0:
             target = data.idx2str(by[0, 1:-1])
             pred = model.inference(bx[0:1])
             res = data.idx2str(pred[0])
