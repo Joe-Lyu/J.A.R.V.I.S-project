@@ -5,14 +5,14 @@ import sys
 
 import tensorflow.python.keras.models
 
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import utils
 import tensorflow_addons as tfa
-import pickle
-from keras.models import load_model
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.3
 
 class Seq2Seq(keras.Model):
     def __init__(self, enc_v_dim, dec_v_dim, emb_dim, units, max_pred_len, start_token, end_token):
@@ -60,7 +60,7 @@ class Seq2Seq(keras.Model):
 
     def inference(self, x):
         s = self.encode(x)
-        done, i, s = self.decoder_eval.initialize(
+        done, i, s = self.decoder_eval.initialize(  # (initial_finished, initial_inputs),initial_State
             self.dec_embeddings.variables[0],
             start_tokens=tf.fill([x.shape[0], ], self.start_token),
             end_token=self.end_token,
@@ -70,7 +70,7 @@ class Seq2Seq(keras.Model):
         for l in range(self.max_pred_len):
             o, s, i, done = self.decoder_eval.step(
                 time=l, inputs=i, state=s, training=False)
-            pred_id[:, l] = o.sample_id  # 喂食正确数据
+            pred_id[:, l] = o.sample_id  # save pred words
         return pred_id
 
     def train_logits(self, x, y, seq_len):
@@ -91,20 +91,16 @@ class Seq2Seq(keras.Model):
         return loss.numpy()
 
 
-def train():
-    # get and process data
-    data = utils.Data()
+def train(model,data):
+
     # print("Chinese time order: yy/mm/dd ", data.date_cn[:3], "\nEnglish time order: dd/M/yyyy ", data.date_en[:3])
     # print("vocabularies: ", data.vocab)
     # print("x index sample: \n{}\n{}".format(data.idx2str(data.x[0]), data.x[0]),
     #       "\ny index sample: \n{}\n{}".format(data.idx2str(data.y[0]), data.y[0]))
 
-    model = Seq2Seq(
-        data.num_word+1, data.num_word+1, emb_dim=16, units=32,
-        max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
 
     # training
-    for t in range(500):
+    for t in range(10000):
         bx, by, decoder_len = data.sample(32)
         loss = model.step(bx, by, decoder_len)
         if t % 70 == 0:
@@ -119,13 +115,25 @@ def train():
                 "| target: ", target,
                 "| inference: ", res,
             )
-            model.save_weights('model_weight')
-            print("saved")
-    saved_model = Seq2Seq(data.num_word+1, data.num_word+1, emb_dim=16, units=32,
-    max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
-    saved_model.load_weights('model_weight').expect_partial()
-    print(saved_model)
 
 
 if __name__ == "__main__":
-    train()
+    # get and preprocess data
+    data = utils.Data()
+    #load model
+    model = Seq2Seq(
+        data.num_word + 1, data.num_word + 1, emb_dim=16, units=32,
+        max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
+    try:
+        model.load_weights('model_weight').expect_partial()
+    except:
+        print("initialize new model")
+    for epoch in range(30):
+        print(f"Epoch{epoch}:")
+        train(model,data)
+        test_text = input("test=")
+        test_text=data.prepare_test(test_text)
+        test_id=model.inference(test_text)
+        print("inference:",data.idx2str(test_id[0]))
+        model.save_weights('model_weight')
+        print("saved")
