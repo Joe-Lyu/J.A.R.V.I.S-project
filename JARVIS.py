@@ -53,7 +53,7 @@ from init_venv import *
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"  #FIXME manditorily use cpu to train
 pipList = ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
-           "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re"]
+           "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re","pickle"]
 
 # import...
 try:
@@ -69,6 +69,7 @@ try:
     import PySimpleGUI as sg
     import numpy as np
     import pandas as pd
+    import pickle
     from silence_tensorflow import silence_tensorflow
 
     #silence_tensorflow()

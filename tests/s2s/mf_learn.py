@@ -1,13 +1,18 @@
 # [Sequence to Sequence Learning with Neural Networks](https://papers.nips.cc/paper/5346-sequence-to-sequence-learning-with-neural-networks.pdf)
 # pip install tensorflow-addons
 import os
+import sys
+
+import tensorflow.python.keras.models
+
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import utils
 import tensorflow_addons as tfa
-
+import pickle
+from keras.models import load_model
 
 class Seq2Seq(keras.Model):
     def __init__(self, enc_v_dim, dec_v_dim, emb_dim, units, max_pred_len, start_token, end_token):
@@ -49,7 +54,7 @@ class Seq2Seq(keras.Model):
 
     def encode(self, x):
         embedded = self.enc_embeddings(x)
-        init_s = [tf.zeros((x.shape[0], self.units)), tf.zeros((x.shwape[0], self.units))]
+        init_s = [tf.zeros((x.shape[0], self.units)), tf.zeros((x.shape[0], self.units))]
         o, h, c = self.encoder(embedded, initial_state=init_s)
         return [h, c]
 
@@ -65,7 +70,7 @@ class Seq2Seq(keras.Model):
         for l in range(self.max_pred_len):
             o, s, i, done = self.decoder_eval.step(
                 time=l, inputs=i, state=s, training=False)
-            pred_id[:, l] = o.sample_id
+            pred_id[:, l] = o.sample_id  # 喂食正确数据
         return pred_id
 
     def train_logits(self, x, y, seq_len):
@@ -99,7 +104,7 @@ def train():
         max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
 
     # training
-    for t in range(150000):
+    for t in range(500):
         bx, by, decoder_len = data.sample(32)
         loss = model.step(bx, by, decoder_len)
         if t % 70 == 0:
@@ -114,6 +119,12 @@ def train():
                 "| target: ", target,
                 "| inference: ", res,
             )
+            model.save_weights('model_weight')
+            print("saved")
+    saved_model = Seq2Seq(data.num_word+1, data.num_word+1, emb_dim=16, units=32,
+    max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
+    saved_model.load_weights('model_weight').expect_partial()
+    print(saved_model)
 
 
 if __name__ == "__main__":
