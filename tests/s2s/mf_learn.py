@@ -11,8 +11,6 @@ from tensorflow import keras
 import numpy as np
 import utils
 import tensorflow_addons as tfa
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.3
 
 class Seq2Seq(keras.Model):
     def __init__(self, enc_v_dim, dec_v_dim, emb_dim, units, max_pred_len, start_token, end_token):
