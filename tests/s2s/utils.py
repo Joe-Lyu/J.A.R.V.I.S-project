@@ -9,7 +9,7 @@ from keras.preprocessing.sequence import pad_sequences
 
 PROJECT_PATH = sys.path[0]
 PAD_ID = 0
-
+DATASET_NAME = r"\dialogs_expanded.csv"
 
 # print(sys.path[0])
 
@@ -53,7 +53,7 @@ def padding_doc(encoded_doc, max_length):
 class Data:
     def __init__(self):
         # load dataset
-        questions, answers = load_dataset(PROJECT_PATH + r"\s2s.csv")
+        questions, answers = load_dataset(PROJECT_PATH + DATASET_NAME)
         # get info and save to 2 dicts(v2i i2v)and a vocab
         token_q, words_q = get_preprocessed_info(questions)
         token_a, words_a = get_preprocessed_info(answers, flag=1)

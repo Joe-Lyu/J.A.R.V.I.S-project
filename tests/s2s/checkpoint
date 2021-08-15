@@ -1,2 +1,2 @@
-model_checkpoint_path: "model_weight"
-all_model_checkpoint_paths: "model_weight"
+model_checkpoint_path: "seq2seq_model_weight_emb_64"
+all_model_checkpoint_paths: "seq2seq_model_weight_emb_64"

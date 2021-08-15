@@ -12,6 +12,7 @@ import numpy as np
 import utils
 import tensorflow_addons as tfa
 
+
 class Seq2Seq(keras.Model):
     def __init__(self, enc_v_dim, dec_v_dim, emb_dim, units, max_pred_len, start_token, end_token):
         super().__init__()
@@ -45,7 +46,7 @@ class Seq2Seq(keras.Model):
         )
 
         self.cross_entropy = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        self.opt = keras.optimizers.Adam(0.002)
+        self.opt = keras.optimizers.Adam(0.005)
         self.max_pred_len = max_pred_len
         self.start_token = start_token
         self.end_token = end_token
@@ -89,16 +90,14 @@ class Seq2Seq(keras.Model):
         return loss.numpy()
 
 
-def train(model,data):
-
+def train(model, data):
     # print("Chinese time order: yy/mm/dd ", data.date_cn[:3], "\nEnglish time order: dd/M/yyyy ", data.date_en[:3])
     # print("vocabularies: ", data.vocab)
     # print("x index sample: \n{}\n{}".format(data.idx2str(data.x[0]), data.x[0]),
     #       "\ny index sample: \n{}\n{}".format(data.idx2str(data.y[0]), data.y[0]))
 
-
     # training
-    for t in range(10000):
+    for t in range(212):
         bx, by, decoder_len = data.sample(32)
         loss = model.step(bx, by, decoder_len)
         if t % 70 == 0:
@@ -115,23 +114,25 @@ def train(model,data):
             )
 
 
+MODEL_NAME = r'seq2seq_model_weight_emb_64'
 if __name__ == "__main__":
     # get and preprocess data
     data = utils.Data()
-    #load model
+    # load model
     model = Seq2Seq(
-        data.num_word + 1, data.num_word + 1, emb_dim=16, units=32,
-        max_pred_len=11, start_token=data.start_token, end_token=data.end_token)
+        data.num_word + 1, data.num_word + 1, emb_dim=64, units=32,
+        max_pred_len=30, start_token=data.start_token, end_token=data.end_token)  # original emb=16
     try:
-        model.load_weights('model_weight').expect_partial()
+        model.load_weights(MODEL_NAME).expect_partial()
     except:
         print("initialize new model")
-    for epoch in range(30):
+    for epoch in range(300):
         print(f"Epoch{epoch}:")
-        train(model,data)
-        test_text = input("test=")
-        test_text=data.prepare_test(test_text)
-        test_id=model.inference(test_text)
-        print("inference:",data.idx2str(test_id[0]))
-        model.save_weights('model_weight')
+        train(model, data)
+        ## test
+        # test_text = input("test=")
+        # test_text = data.prepare_test(test_text)
+        # test_id = model.inference(test_text)
+        # print("inference:", data.idx2str(test_id[0]))
+        model.save_weights(MODEL_NAME)
         print("saved")
