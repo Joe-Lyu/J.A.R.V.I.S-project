@@ -25,3 +25,4 @@ while True:
         break
 
     img.update_animation(gif_filename, time_between_frames=50)
+window.close()

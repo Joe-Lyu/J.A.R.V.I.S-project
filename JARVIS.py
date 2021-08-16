@@ -21,8 +21,9 @@ please: set the path and check other FIXMEs
         unzip intent.zip TODO: done by program
 @author: Joe Tom
 """
+
 # =============================================================================
-# JARVIS V1.2.2 BETA
+# JARVIS V1.3.0 BETA
 # features:
 #                   autopiptool;(v1.2.2)
 #                   speak;(v1.2.1)
@@ -33,13 +34,13 @@ please: set the path and check other FIXMEs
 #                   send email;(v1.0.1)
 # issues:
 #                   awkward pronunciation;     (->search better lib)
-#                   slow recognition time;
+# FIXED(1.3.0)      slow recognition time;     (->use sphinx)
 #                   limited abilities & responses;
-# FIXING             limited understanding;    (->enlarge database)
+# FIXING            limited understanding;    (->enlarge database)
 #                   no conversational skills;
-# FIXED(1.0.1)       proxy problems;
-# FIXED(1.0.2)       web browser problems
-# FIXED(1.2.2)       improving understanding   (->reduce intents)
+# FIXED(1.0.1)      proxy problems;
+# FIXED(1.0.2)      web browser problems
+# FIXED(1.2.2)      improving understanding   (->reduce intents)
 # =============================================================================
 # =============================================================================
 # fixed proxys;
@@ -48,6 +49,7 @@ please: set the path and check other FIXMEs
 # added silent mode for those who cant access google or dont want to be heard;
 # added quit notification;
 # added search in google
+# switched voice recognition engine to sphinx for offline usage
 # =============================================================================
 from init_venv import *
 import os
