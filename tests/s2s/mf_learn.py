@@ -97,7 +97,7 @@ def train(model, data):
     #       "\ny index sample: \n{}\n{}".format(data.idx2str(data.y[0]), data.y[0]))
 
     # training
-    for t in range(210):
+    for t in range(212):
         bx, by, decoder_len = data.sample(32)
         loss = model.step(bx, by, decoder_len)
         if t % 70 == 0:
@@ -114,7 +114,7 @@ def train(model, data):
             )
 
 
-MODEL_NAME = 'model_weight_large_emb_64'
+MODEL_NAME = r'seq2seq_model_weight_emb_64'
 if __name__ == "__main__":
     # get and preprocess data
     data = utils.Data()

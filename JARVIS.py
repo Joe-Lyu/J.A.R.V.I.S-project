@@ -55,10 +55,11 @@ from init_venv import *
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"  #FIXME manditorily use cpu to train
 pipList = ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
-           "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re","pickle"]
+           "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re", "pickle", "swig", "pocketsphinx"]
 
 # import...
 try:
+    import piptest
     import pyttsx3
     import speech_recognition as sr
     import datetime
