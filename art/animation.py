@@ -9,6 +9,7 @@ from PIL import Image, ImageTk, ImageSequence
 import PySimpleGUI as sg
 import sys
 import random
+import time
 gif_filename = sys.path[0] + r'\\resized.gif'
 sg.theme('DarkAmber')  # Iron Man theme (as close as I can get)
 
