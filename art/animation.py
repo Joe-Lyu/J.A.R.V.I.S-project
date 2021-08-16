@@ -10,12 +10,12 @@ from PIL import Image, ImageTk, ImageSequence
 import PySimpleGUI as sg
 import sys
 import random
-gif_filename = sys.path[0] + r'\\resized.gif'
+gif_filename = r'.\resized.gif'
 sg.theme('DarkAmber')  # Iron Man theme (as close as I can get)
 
 layout = [[sg.Image(key='-IMAGE-')]]
 
-window = sg.Window('J.A.R.V.I.S.', layout, element_justification='c', margins=(0, 0), element_padding=(0, 0),
+window = sg.Window('J.A.R.V.I.S.', layout, keep_on_top=True,alpha_channel=.5,element_justification='c', margins=(0, 0), element_padding=(0, 0),
                    finalize=True)
 
 sequence = [ImageTk.PhotoImage(img) for img in
@@ -26,7 +26,7 @@ interframe_duration = Image.open(gif_filename).info['duration']  # get how long 
 frame = random.choice(sequence)
 while True:
     direction = random.choice([-1, 1, 1])
-    length = random.randint(1, 45)
+    length = random.randint(1, 44)
     ind = sequence.index(frame)
     if ind <= length and direction == -1:
         direction = 1
