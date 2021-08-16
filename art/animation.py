@@ -4,6 +4,7 @@ Created on Sat Aug  7 00:18:37 2021
 
 @author: DELL
 """
+import time
 
 from PIL import Image, ImageTk, ImageSequence
 import PySimpleGUI as sg
