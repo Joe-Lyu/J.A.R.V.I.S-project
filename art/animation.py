@@ -8,7 +8,7 @@ Created on Sat Aug  7 00:18:37 2021
 from PIL import Image, ImageTk, ImageSequence
 import PySimpleGUI as sg
 import sys
-
+import random
 gif_filename = sys.path[0] + r'\\resized.gif'
 sg.theme('DarkAmber')  # Iron Man theme (as close as I can get)
 
