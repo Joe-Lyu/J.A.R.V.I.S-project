@@ -15,7 +15,7 @@ sg.theme('DarkAmber')  # Iron Man theme (as close as I can get)
 
 layout = [[sg.Image(key='-IMAGE-')]]
 
-window = sg.Window('J.A.R.V.I.S.', layout, keep_on_top=True,alpha_channel=.5,element_justification='c', margins=(0, 0), element_padding=(0, 0),
+window = sg.Window('J.A.R.V.I.S.', layout, grab_anywhere=True,keep_on_top=True,alpha_channel=.5,element_justification='c', margins=(0, 0), element_padding=(0, 0),
                    finalize=True)
 
 sequence = [ImageTk.PhotoImage(img) for img in
