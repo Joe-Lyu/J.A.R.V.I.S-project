@@ -51,13 +51,14 @@ please: set the path and check other FIXMEs
 # added search in google
 # switched voice recognition engine to sphinx for offline usage
 # =============================================================================
-from init_venv import *
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"  #FIXME manditorily use cpu to train
-pipList = ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
-           "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re", "pickle", "swig", "pocketsphinx"]
 
-# import...
+import init_venv
+from reply_func import speak, wiki, wishMe, sendEmail, net
+from utils import SilentlyTakeCommand, takeCommand
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # FIXME: manditorily use cpu to train
+
 try:
     import piptest
     import pyttsx3
@@ -74,8 +75,7 @@ try:
     import pandas as pd
     import pickle
     from silence_tensorflow import silence_tensorflow
-
-    #silence_tensorflow()
+    # silence_tensorflow()
     from nltk.corpus import stopwords
     from nltk.tokenize import word_tokenize
     from nltk.stem.lancaster import LancasterStemmer
@@ -90,7 +90,12 @@ try:
     import tensorflow as tf
     from tensorflow.keras.models import load_model
 except ModuleNotFoundError as e:
-    check = install_package_check(pipList)
+    # TODO: swig can't be download by pip, it needs to be downloaded by http://www.swig.org/download.html,
+    # use requests and set env variable of path
+    # remove pickle, because it built in python
+    check = init_venv.install_package_check(
+        ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
+         "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re", "pocketsphinx"])
     if check is not True:
         print("FalseList=", check)
 finally:
@@ -130,40 +135,30 @@ os.environ['HTTP_PROXY'] = proxy
 os.environ['https_proxy'] = proxy
 os.environ['HTTPS_PROXY'] = proxy
 
-# voice initiation
-engine = pyttsx3.init('sapi5', True)
-engine.setProperty('rate', 225)  # setting up new voice rate
-voices = engine.getProperty('voices')  # get system voice pack
-engine.setProperty('voice', voices[2].id)  # changing index, changes voices. 2 for male
-
-PROJECT_PATH = sys.path[0]
-print("PATH=",sys.path[0])
-
-def load_dataset(filename):
-    df = pd.read_csv(filename, encoding="latin1", names=["Sentence", "Intent"])
-    intent = df["Intent"]
-    unique_intent = list(set(intent))
-    sentences = list(df["Sentence"])
-
-    return intent, unique_intent, sentences
+# load dataset
+df = pd.read_csv(sys.path[0] + "/datasets/Dataset-train.csv", encoding="latin1", names=["Sentence", "Intent"])
+intent = df["Intent"]
+unique_intent = list(set(intent))
+sentences = list(df["Sentence"])
 
 
-intent, unique_intent, sentences = load_dataset(PROJECT_PATH + r"\Dataset-train.csv")
-#stemmer = LancasterStemmer()
-
-
-def cleaning(sentences):  # sentence List->tokenized sentence List
+def cleaning(inp: list) -> list:
+    """
+    sentence List -> tokenized sentence List
+    :param inp: sentence
+    :return: tokenized sentence List
+    """
     words = []
-    for s in sentences:
-        clean = re.sub(r'[^ a-z A-Z 0-9]', " ", s)  #substitute none alphabet and num into space (sentences by sentences)
+    for s in inp:
+        # substitute none alphabet and num into space (sentences by sentences)
+        clean = re.sub(r'[^ a-zA-Z0-9]', " ", s)
         w = word_tokenize(clean)
         # stemming
         words.append([i.lower() for i in w])
-
     return words
 
 
-def create_tokenizer(words, filters='!"#$%&()*+,-./:;<=>?@[\]^_`{|}~'):
+def create_tokenizer(words, filters='!"#$%&()*+,-./<=>:;?@[]^_`{|}~\\'):
     token = Tokenizer(filters=filters)
     token.fit_on_texts(words)
     return token
@@ -177,10 +172,11 @@ def encoding_doc(token, words):  # 编码
     return token.texts_to_sequences(words)
 
 
-def padding_doc(encoded_doc, max_length):
-    return pad_sequences(encoded_doc, maxlen=max_length, padding="post")
+def padding_doc(enc_doc, max_len):
+    return pad_sequences(enc_doc, maxlen=max_len, padding="post")
 
-#for sentence
+
+# for sentence
 cleaned_words = cleaning(sentences)
 word_tokenizer = create_tokenizer(cleaned_words)
 encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
@@ -189,24 +185,14 @@ max_length = get_max_length(cleaned_words)
 padded_doc = padding_doc(encoded_doc, max_length)
 
 # for intent
-output_tokenizer = create_tokenizer(unique_intent, filters='!"#$%&()*+,-/:;<=>?@[\]^`{|}~')
+output_tokenizer = create_tokenizer(unique_intent, filters='!"#$%&()*+,-/:;<=>?@[]^`{|}~\\')
 encoded_output = encoding_doc(output_tokenizer, intent)
-
 x = []
 for i in encoded_output:
     x.append(i[0])
 encoded_output = x
-
 encoded_output = (np.array(encoded_output).reshape(len(encoded_output), 1))
-
-
-def one_hot(encode):
-    o = OneHotEncoder(sparse=False)
-    return o.fit_transform(encode)
-
-
-output_one_hot = one_hot(encoded_output)
-
+output_one_hot = OneHotEncoder(sparse=False).fit_transform(encoded_output)
 train_X, val_X, train_Y, val_Y = train_test_split(padded_doc, output_one_hot, shuffle=True, test_size=0.2)
 
 max_features = 15000
@@ -227,13 +213,13 @@ x = layers.Dropout(0.5)(x)
 predictions = layers.Dense(39, activation="sigmoid", name="predictions")(x)
 
 model = tf.keras.Model(inputs, predictions)
-
 model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
 
-filename = 'intent.h5'
-checkpoint = ModelCheckpoint(filename, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+checkpoint = ModelCheckpoint('intent.h5', verbose=1, save_best_only=True, mode='min')
 model = load_model("intent.h5")
-#hist= model.fit(train_X,train_Y,epochs=105,batch_size=32,validation_data=(val_X,val_Y),callbacks=[checkpoint])
+
+
+# hist= model.fit(train_X,train_Y,epochs=105,batch_size=32,validation_data=(val_X,val_Y),callbacks=[checkpoint])
 
 
 def predictions(text):
@@ -244,29 +230,22 @@ def predictions(text):
     # Check for unknown words
     if [] in test_ls:
         test_ls = list(filter(None, test_ls))
-
     test_ls = np.array(test_ls).reshape(1, len(test_ls))
-
     x = padding_doc(test_ls, max_length)
-
     pred = model.predict(x)
-
     return pred
 
 
 def get_final_output(pred, classes):
     predictions = pred[0]
-
     classes = np.array(classes)
     ids = np.argsort(-predictions)
     classes = classes[ids]
     predictions = -np.sort(-predictions)
-
     return classes[0], predictions[0]
 
 
 sg.theme('DarkAmber')  # Iron Man theme (as close as I can get)
-
 # layout of all the windows
 email_layout = [[sg.Text('J.A.R.V.I.S. email service')],
                 [sg.Text('Email content'), sg.InputText()],
@@ -276,161 +255,53 @@ music_layout = [[sg.Text('J.A.R.V.I.S. music player')],
                 [sg.Button('Shuffle music'), sg.Button('Cancel')]]
 
 # browser settings
-chrome_path = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" #true on windows if not reinstalled
+chrome_path = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"  # true on windows if not reinstalled
 
 webbrowser.register('chrome', webbrowser.BackgroundBrowser(chrome_path), 1)
 webbrowser.get('chrome')
 
 
-def speak(msg, msg_show=0):  # popup windows actually
-    engine.say(msg)
-    if (msg_show != 0):
-        msg = msg_show
-    speak_layout = [[sg.Text(msg)]]
-    window = sg.Window('J.A.R.V.I.S.', speak_layout, auto_close=True, auto_close_duration=2)
-    event, values = window.read()
-    engine.runAndWait()
-    # print(msg)
-
-
-def wiki(content):  # search wikipedia
-    wiki_layout = [[sg.Text(content)], [sg.Button('Ok')]]
-    window = sg.Window('J.A.R.V.I.S.', wiki_layout)
-    while True:
-        event, values = window.read()
-        if event == sg.WIN_CLOSED or event == 'Ok':
-            break
-    window.close()
-
-
-def wishMe():
-    hour = int(datetime.datetime.now().hour)
-    if 4 <= hour < 12:
-        t = "Good morning"
-
-    elif 12 <= hour < 18:
-        t = "Good afternoon"
-
-    else:
-        t = "Good evening"
-    greetinglist = ["How may I help you?", "How can I be of service today?", "Good to see you again.",
-                    "Hope you are well?"]
-    speak(t + " sir. " + random.choice(greetinglist))
-
-
-def SilentlyTakeCommand():
-    type_layout = [[sg.Text('Type your command, sir.')],
-                   [sg.InputText()],
-                   [sg.Button("Confirm", bind_return_key=True)]]
-    window = sg.Window('J.A.R.V.I.S.', type_layout)
-    while True:
-        event, values = window.read()
-        if event == 'Confirm':
-            query = values[0]
-            break
-    window.close()
-    if 'exit' in query or 'quit' in query:
-        speak("Quitting program...\nGoodbye.", "Quitting program...\nGoodbye, sir.")
-        sys.exit()
-    return query
-
-
-def takeCommand():
-    r = sr.Recognizer()
-    with sr.Microphone() as source:
-        speak("Will be listening after window closes...")
-        r.pause_threshold = 1
-        audio = r.listen(source)
-
-    try:
-        speak("Recognizing...")
-        query = r.recognize_google(audio, language='en-us')
-
-    except Exception as e:
-        print(e)
-        errorlist = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
-        speak(random.choice(errorlist))
-        return "None"
-    # print(query)                             #this line is for debugging
-    if query.startswith('hey Jarvis'):
-        return query
-    elif 'exit' in query or 'quit' in query:
-        speak("Quitting program...\nGoodbye.")
-        sys.exit()
-    elif query == 'silent mode' or query == 'silence mode':
-        query = 'silent mode'
-        return query
-    else:
-        return "UNKNOWN_COMMAND"
-
-
-def sendEmail(to, content):
-    server = smtplib.SMTP('smtp.qq.com', 587)
-    server.ehlo()
-    server.starttls()
-    server.login('your_email@example.com', 'your_login_password')
-    server.sendmail('your_email@example.com', to, content)
-    server.close()
-
-
-def net(url):
-    try:
-        webbrowser.open_new_tab(url)
-    except:
-        webbrowser.open(url)
-
-
-def main(query):
-    pred = predictions(query)
-    intent, confidence = get_final_output(pred, unique_intent)
+def main(command):
+    intent, confidence = get_final_output(predictions(command), unique_intent)
     print(intent) if confidence >= 0.7 else print('unknown', intent, confidence)
     logic = ''
-    if query == "UNKNOWN_COMMAND":
-        errorlist = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
-        speak(random.choice(errorlist))
+    if command == "UNKNOWN_COMMAND":
+        error_list = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
+        speak(random.choice(error_list))
         # Logic for executing tasks based on query
     # TODO: add more logic
-    if 'wikipedia' in query or query.startswith('what is'):
+    if 'wikipedia' in command or command.startswith('what is'):
         logic = 'wikipedia'
-    elif 'youtube' in query:
+    elif 'youtube' in command:
         logic = 'youtube'
-    elif 'search' in query and 'in google' in query:
+    elif 'search' in command and 'in google' in command:
         logic = 'search google'
-        query = query.replace("search for", '')
-        query = query.replace('in google', '')
-        query = query.replace(" ", '+')
-    elif 'google' in query:
+        command = command.replace("search for", '')
+        command = command.replace('in google', '')
+        command = command.replace(" ", '+')
+    elif 'google' in command:
         logic = 'google'
-    elif 'stackoverflow' in query:
+    elif 'stackoverflow' in command:
         logic = 'stackoverflow'
     else:
-        errorlist = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
-        speak(random.choice(errorlist))
-
+        error_list = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
+        speak(random.choice(error_list))
     if logic == 'wikipedia':
-        query = query.replace("search wikipedia for", "")
-        query = query.replace("hey jarvis", "")
-        query = query.replace("what is", "")
-
-        speak('Searching Wikipedia for' + query + '...')
-
-        results = wikipedia.summary(query, sentences=2)
+        command = command.replace("search wikipedia for", "")
+        command = command.replace("hey jarvis", "")
+        command = command.replace("what is", "")
+        speak('Searching Wikipedia for' + command + '...')
+        results = wikipedia.summary(command, sentences=2)
         wiki("According to Wikipedia,\n" + results)
-
     elif logic == 'youtube':
-
         net("https://www.youtube.com")
-
     elif logic == 'google':
         net("https://www.google.com")
-
     elif logic == 'stackoverflow':
         net("https://www.stackoverflow.com")
-
     elif logic == 'search google':
-        net("https://www.google.com/search?q=" + query)
-
-    elif 'play music' in query:
+        net("https://www.google.com/search?q=" + command)
+    elif 'play music' in command:
         music_dir = r'D:\Music'
         songs = os.listdir(music_dir)
         window = sg.Window('J.A.R.V.I.S.', music_layout)
@@ -442,15 +313,14 @@ def main(query):
             if event == sg.WIN_CLOSED or event == 'Cancel':
                 break
         window.close()
-
-    elif 'the time' in query:
+    elif 'the time' in command:
         strTime = datetime.datetime.now().strftime("%H:%M:%S")
         speak(f"Sir, the time is {strTime}")
-
-    elif 'email ' in query:
+    elif 'email ' in command:
         try:
             # Create the Window
             window = sg.Window('J.A.R.V.I.S.', email_layout)
+            content, to = "", ""
             while True:
                 event, values = window.read()
                 if event == 'Ok':
@@ -469,16 +339,15 @@ def main(query):
 
 if __name__ == "__main__":
     wishMe()
+    SILENT_MODE, VOICE_MODE = 0, 1
+    mode = SILENT_MODE
     while True:
-        while True:
+        if mode == SILENT_MODE:
             query = SilentlyTakeCommand().lower()
-            if query == 'voice mode':
-                break
-            else:
-                main(query)
-        while True:
+        else:
             query = takeCommand().lower()
-            if query == 'silent mode':
-                break
-            else:
-                main(query)
+        if query == 'voice mode':
+            mode = VOICE_MODE
+        elif query == 'silent mode':
+            mode = SILENT_MODE
+        main(query)
