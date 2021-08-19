@@ -1,0 +1,54 @@
+cabal-version:       2.2
+name:                twremat
+version:             0.1.0.0
+synopsis:            Fast implementation of `Efficient Rematerialization for Deep Networks`
+-- description:
+-- bug-reports:
+-- license:             GPL-3.0-or-later
+-- license-file:        LICENSE
+author:              nshepperd
+maintainer:          nshepperd@gmail.com
+-- copyright:
+-- category:            Distribution
+extra-source-files:  README.md
+
+library lib
+  hs-source-dirs: src
+  exposed-modules:
+    Balanced Dense Filter Graph TreeWidth TWRemat Util
+  build-depends: base >= 4.12.0.0 && < 4.16.0.0, containers, mtl, psqueues, dlist, relation
+  default-language:    Haskell2010
+
+executable twremat
+  main-is:             remat.hs
+  -- other-modules:       Cabbage.Config, Cabbage.Cabal, Cabbage.Parser
+  -- other-extensions:
+  build-depends: base >= 4.12.0.0 && < 4.16.0.0, lib,
+                 containers, mtl, psqueues, dlist, relation, parsers, trifecta, text
+                     -- , Glob
+                     -- , containers
+                     -- , directory
+                     -- , filepath
+                     -- , optparse-applicative
+                     -- , pretty-simple
+                     -- , process
+                     -- , temporary
+                     -- , text
+                     -- , xdg-basedir
+                     -- , parsers
+                     -- , trifecta
+
+  hs-source-dirs: main
+  default-language:    Haskell2010
+  default-extensions:  LambdaCase, OverloadedStrings, RecordWildCards
+
+
+Test-Suite testmain
+  type:       exitcode-stdio-1.0
+  main-is:    test.hs
+  hs-source-dirs: main test
+  other-modules: TestBalanced TestGraph TestTreeWidth
+  build-depends: base >= 4.12.0.0 && < 4.16.0.0, lib,
+                 containers, mtl, psqueues, dlist, relation, parsers, trifecta, text,
+                 QuickCheck, tasty, tasty-quickcheck, fgl, fgl-arbitrary
+  default-language:    Haskell2010
