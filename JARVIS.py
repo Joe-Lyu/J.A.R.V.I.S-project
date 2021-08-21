@@ -57,79 +57,53 @@ import init_venv
 from reply_func import speak, wiki, wishMe, sendEmail, net
 from utils import SilentlyTakeCommand, takeCommand
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # FIXME: manditorily use cpu to train
-
-try:
-    import piptest
-    import pyttsx3
-    import speech_recognition as sr
-    import datetime
-    import wikipedia
-    import webbrowser
-    import os
-    import sys
-    import smtplib
-    import random
-    import PySimpleGUI as sg
-    import numpy as np
-    import pandas as pd
-    import pickle
-    from silence_tensorflow import silence_tensorflow
-    # silence_tensorflow()
-    from nltk.corpus import stopwords
-    from nltk.tokenize import word_tokenize
-    from nltk.stem.lancaster import LancasterStemmer
-    import nltk
-    import re
-    from sklearn.preprocessing import OneHotEncoder
-    from tensorflow.keras.preprocessing.text import Tokenizer
-    from tensorflow.keras.preprocessing.sequence import pad_sequences
-    from tensorflow.keras.callbacks import ModelCheckpoint
-    from sklearn.model_selection import train_test_split
-    from tensorflow.keras import layers
-    import tensorflow as tf
-    from tensorflow.keras.models import load_model
-except ModuleNotFoundError as e:
-    # TODO: swig can't be download by pip, it needs to be downloaded by http://www.swig.org/download.html,
-    # use requests and set env variable of path
-    # remove pickle, because it built in python
-    check = init_venv.install_package_check(
-        ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3", "pywin32",
-         "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re", "pocketsphinx"])
-    if check is not True:
-        print("FalseList=", check)
-finally:
-    import pyttsx3
-    import speech_recognition as sr
-    import datetime
-    import wikipedia
-    import webbrowser
-    import os
-    import sys
-    import smtplib
-    import random
-    import PySimpleGUI as sg
-    import numpy as np
-    import pandas as pd
-    from silence_tensorflow import silence_tensorflow
-
-    silence_tensorflow()
-    from nltk.corpus import stopwords
-    from nltk.tokenize import word_tokenize
-    from nltk.stem.lancaster import LancasterStemmer
-    import nltk
-    import re
-    from sklearn.preprocessing import OneHotEncoder
-    from tensorflow.keras.preprocessing.text import Tokenizer
-    from tensorflow.keras.preprocessing.sequence import pad_sequences
-    from tensorflow.keras.callbacks import ModelCheckpoint
-    from sklearn.model_selection import train_test_split
-    from tensorflow.keras import layers
-    import tensorflow as tf
-    from tensorflow.keras.models import load_model
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # FIXME: mandatory use cpu to train
+while 1:
+    try:
+        import pyttsx3
+        import speech_recognition as sr
+        import datetime
+        import wikipedia
+        import webbrowser
+        import os
+        import sys
+        import smtplib
+        import random
+        import PySimpleGUI as pySG
+        import numpy as np
+        import pandas as pd
+        import pickle
+        from silence_tensorflow import silence_tensorflow
+        # silence_tensorflow()
+        from nltk.corpus import stopwords
+        from nltk.tokenize import word_tokenize
+        from nltk.stem.lancaster import LancasterStemmer
+        import nltk
+        import re
+        from sklearn.preprocessing import OneHotEncoder
+        from tensorflow.keras.preprocessing.text import Tokenizer
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+        from tensorflow.keras.callbacks import ModelCheckpoint
+        from sklearn.model_selection import train_test_split
+        from tensorflow.keras import layers
+        import tensorflow as tf
+        from tensorflow.keras.models import load_model
+        break
+    except ModuleNotFoundError as e:
+        # TODO: swig can't be download by pip, it needs to be downloaded in http://www.swig.org/download.html,
+        # and use requests and set env variable of path
+        # remove pickle, because it built in python
+        res = init_venv.install_package_check(
+            ["PyAudio", "PySimpleGUI", "SpeechRecognition", "matplotlib", "nltk", "numpy", "pandas", "pyttsx3",
+             "pywin32",
+             "scikit_learn", "silence_tensorflow", "tensorflow", "wikipedia", "re", "pocketsphinx"])
+        if not res[1]:
+            print("These packages cannot be installed successfully: ", res)
+            os.close(-1)
+        break
 
 # proxy
-proxy = "http://127.0.0.1:15732"  # FIXME:need to change
+proxy = "http://127.0.0.1:11223"  # FIXME:need to change
 os.environ['http_proxy'] = proxy
 os.environ['HTTP_PROXY'] = proxy
 os.environ['https_proxy'] = proxy
@@ -151,7 +125,7 @@ def cleaning(inp: list) -> list:
     words = []
     for s in inp:
         # substitute none alphabet and num into space (sentences by sentences)
-        clean = re.sub(r'[^ a-zA-Z0-9]', " ", s)
+        clean = re.sub(r'[^a-zA-Z0-9]', " ", s)
         w = word_tokenize(clean)
         # stemming
         words.append([i.lower() for i in w])
@@ -162,10 +136,6 @@ def create_tokenizer(words, filters='!"#$%&()*+,-./<=>:;?@[]^_`{|}~\\'):
     token = Tokenizer(filters=filters)
     token.fit_on_texts(words)
     return token
-
-
-def get_max_length(words):  # longest sentence word-count
-    return len(max(words, key=len))
 
 
 def encoding_doc(token, words):  # 编码
@@ -181,7 +151,7 @@ cleaned_words = cleaning(sentences)
 word_tokenizer = create_tokenizer(cleaned_words)
 encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
 # vocab_size = len(word_tokenizer.word_index) + 1 #didn't used?
-max_length = get_max_length(cleaned_words)
+max_length = len(max(cleaned_words, key=len))  # longest sentence word-count
 padded_doc = padding_doc(encoded_doc, max_length)
 
 # for intent
@@ -193,7 +163,7 @@ for i in encoded_output:
 encoded_output = x
 encoded_output = (np.array(encoded_output).reshape(len(encoded_output), 1))
 output_one_hot = OneHotEncoder(sparse=False).fit_transform(encoded_output)
-train_X, val_X, train_Y, val_Y = train_test_split(padded_doc, output_one_hot, shuffle=True, test_size=0.2)
+train_X, val_X, train_Y, val_Y = train_test_split(padded_doc, output_one_hot, test_size=0.2)
 
 max_features = 15000
 embedding_dim = 128
@@ -202,19 +172,14 @@ inputs = tf.keras.Input(shape=(None,), dtype="int64")
 
 x = layers.Embedding(max_features, embedding_dim)(inputs)
 x = layers.Dropout(0.5)(x)
-
 x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
 x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
 x = layers.GlobalMaxPooling1D()(x)
-
 x = layers.Dense(128, activation="relu")(x)
 x = layers.Dropout(0.5)(x)
-
 predictions = layers.Dense(39, activation="sigmoid", name="predictions")(x)
-
 model = tf.keras.Model(inputs, predictions)
 model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
-
 checkpoint = ModelCheckpoint('intent.h5', verbose=1, save_best_only=True, mode='min')
 model = load_model("intent.h5")
 
@@ -223,7 +188,7 @@ model = load_model("intent.h5")
 
 
 def predictions(text):
-    clean = re.sub(r'[^ a-z A-Z 0-9]', " ", text)
+    clean = re.sub(r'[^ a-zA-Z0-9]', " ", text)
     test_word = word_tokenize(clean)
     test_word = [w.lower() for w in test_word]
     test_ls = word_tokenizer.texts_to_sequences(test_word)
@@ -245,17 +210,18 @@ def get_final_output(pred, classes):
     return classes[0], predictions[0]
 
 
-sg.theme('DarkAmber')  # Iron Man theme (as close as I can get)
+pySG.theme('DarkAmber')  # Iron Man theme (as close as I can get)
 # layout of all the windows
-email_layout = [[sg.Text('J.A.R.V.I.S. email service')],
-                [sg.Text('Email content'), sg.InputText()],
-                [sg.Text('send to'), sg.InputText()],
-                [sg.Button('Ok'), sg.Button('Cancel')]]
-music_layout = [[sg.Text('J.A.R.V.I.S. music player')],
-                [sg.Button('Shuffle music'), sg.Button('Cancel')]]
+email_layout = [[pySG.Text('J.A.R.V.I.S. email service')],
+                [pySG.Text('Email content'), pySG.InputText()],
+                [pySG.Text('send to'), pySG.InputText()],
+                [pySG.Button('Ok'), pySG.Button('Cancel')]]
+music_layout = [[pySG.Text('J.A.R.V.I.S. music player')],
+                [pySG.Button('Shuffle music'), pySG.Button('Cancel')]]
 
 # browser settings
-chrome_path = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"  # true on windows if not reinstalled
+# env variable
+chrome_path = "chrome.exe"  # true on windows if not reinstalled
 
 webbrowser.register('chrome', webbrowser.BackgroundBrowser(chrome_path), 1)
 webbrowser.get('chrome')
@@ -304,13 +270,13 @@ def main(command):
     elif 'play music' in command:
         music_dir = r'D:\Music'
         songs = os.listdir(music_dir)
-        window = sg.Window('J.A.R.V.I.S.', music_layout)
+        window = pySG.Window('J.A.R.V.I.S.', music_layout)
         while True:
             event, values = window.read()
             if event == 'Shuffle music':
                 os.startfile(os.path.join(music_dir, random.choice(songs)))
                 break
-            if event == sg.WIN_CLOSED or event == 'Cancel':
+            if event == pySG.WIN_CLOSED or event == 'Cancel':
                 break
         window.close()
     elif 'the time' in command:
@@ -319,7 +285,7 @@ def main(command):
     elif 'email ' in command:
         try:
             # Create the Window
-            window = sg.Window('J.A.R.V.I.S.', email_layout)
+            window = pySG.Window('J.A.R.V.I.S.', email_layout)
             content, to = "", ""
             while True:
                 event, values = window.read()
@@ -327,7 +293,7 @@ def main(command):
                     content = values[0]
                     to = values[1]
                     break
-                if event == sg.WIN_CLOSED or event == 'Cancel':
+                if event == pySG.WIN_CLOSED or event == 'Cancel':
                     break
             window.close()
             sendEmail(to, content)
