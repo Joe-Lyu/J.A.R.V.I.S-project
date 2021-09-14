@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jul 21 23:37:34 2021
-pip install:================================================================= FIXME:Can this be done automatically
+pip install:================================================================= FIXME:Can this be done automatically FIXED
 Pillow	8.3.1	8.3.1
 PyAudio	0.2.11	0.2.11 (might need whl)
 PySimpleGUI	4.45.0	4.45.0
@@ -18,7 +18,7 @@ tensorflow	2.5.0
 wikipedia	1.4.0
 =============================================================================
 please: set the path and check other FIXMEs
-        unzip intent.zip TODO: done by program
+        unzip intent.zip TODO: done by program DONE
 @author: Joe Tom
 """
 
