@@ -9,7 +9,6 @@ Created on Sat Dec 25 22:28:28 2021
 import cv2
 import mediapipe as mp
 import pyautogui as pg
-from pynput.mouse import Listener
 
 # mp_holistic = mp.solutions.holistic # Holistic model
 # mp_drawing = mp.solutions.drawing_utils # Drawing utilities
@@ -82,13 +81,18 @@ while cap.isOpened():
                 landmarks.append([lm.x, lm.y])
         # print(landmarks[8],'\t',landmarks[12])
 
-        # calculate distance between index and middle finger tip
-        dx = landmarks[8][0] - landmarks[12][0]
-        dy = landmarks[8][1] - landmarks[12][1]
-        dist = (dx ** 2 + dy ** 2) ** 0.5
-        print(f"x={landmarks[8][0]} , y={landmarks[8][1]}")
-        print("Distance between fingers:", dist)
         coordinates = [[landmarks[8][0], landmarks[8][1]], [landmarks[12][0], landmarks[12][1]]]
+        
+        #calculate distance between index and middle finger tip
+        dx=landmarks[8][0]-landmarks[12][0]
+        dy=landmarks[8][1]-landmarks[12][1]
+        dist=(dx**2+dy**2)**0.5
+        
+        dx2=landmarks[5][0]-landmarks[9][0]
+        dy2=landmarks[5][1]-landmarks[9][1]
+        dist2=(dx2**2+dy2**2)**0.5
+        
+        
         # number 8 is the tip of the index finger
         # 12 is the tip of the middle finger
 
