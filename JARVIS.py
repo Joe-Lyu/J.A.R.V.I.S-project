@@ -23,7 +23,7 @@ please: set the path and check other FIXMEs
 """
 
 # =============================================================================
-# JARVIS V1.3.0 BETA
+# JARVIS V1.3.3 BETA
 # features:
 #                   autopiptool;(v1.2.2)
 #                   speak;(v1.2.1)
@@ -32,6 +32,7 @@ please: set the path and check other FIXMEs
 #                   play music (suffle only);(v1.0.1)
 #                   tell time;(v1.0.1)
 #                   send email;(v1.0.1)
+#                   gesture control;(v1.3.1)
 # issues:
 #                   awkward pronunciation;     (->search better lib)
 # FIXED(1.3.0)      slow recognition time;     (->use sphinx)
@@ -41,6 +42,7 @@ please: set the path and check other FIXMEs
 # FIXED(1.0.1)      proxy problems;
 # FIXED(1.0.2)      web browser problems
 # FIXED(1.2.2)      improving understanding   (->reduce intents)
+#                   gesture control disabling other functions
 # =============================================================================
 # =============================================================================
 # fixed proxys;
@@ -50,6 +52,8 @@ please: set the path and check other FIXMEs
 # added quit notification;
 # added search in google
 # switched voice recognition engine to sphinx for offline usage
+# minor change to logic execution, moved error handling from logic to command part
+# added gesture control
 # =============================================================================
 import os
 
