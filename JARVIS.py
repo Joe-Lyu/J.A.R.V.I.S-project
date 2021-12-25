@@ -110,10 +110,10 @@ os.environ['https_proxy'] = proxy
 os.environ['HTTPS_PROXY'] = proxy
 
 # load dataset
-df = pd.read_csv(sys.path[0] + "/datasets/Dataset-train.csv", encoding="latin1", names=["Sentence", "Intent"])
-intent = df["Intent"]
-unique_intent = list(set(intent))
-sentences = list(df["Sentence"])
+# df = pd.read_csv(sys.path[0] + "/datasets/Dataset-train.csv", encoding="latin1", names=["Sentence", "Intent"])
+# intent = df["Intent"]
+# unique_intent = list(set(intent))
+# sentences = list(df["Sentence"])
 
 
 def cleaning(inp: list) -> list:
@@ -147,58 +147,58 @@ def padding_doc(enc_doc, max_len):
 
 
 # for sentence
-cleaned_words = cleaning(sentences)
-word_tokenizer = create_tokenizer(cleaned_words)
-encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
-# vocab_size = len(word_tokenizer.word_index) + 1 #didn't used?
-max_length = len(max(cleaned_words, key=len))  # longest sentence word-count
-padded_doc = padding_doc(encoded_doc, max_length)
+# cleaned_words = cleaning(sentences)
+# word_tokenizer = create_tokenizer(cleaned_words)
+# encoded_doc = encoding_doc(word_tokenizer, cleaned_words)
+# # vocab_size = len(word_tokenizer.word_index) + 1 #didn't used?
+# max_length = len(max(cleaned_words, key=len))  # longest sentence word-count
+# padded_doc = padding_doc(encoded_doc, max_length)
 
-# for intent
-output_tokenizer = create_tokenizer(unique_intent, filters='!"#$%&()*+,-/:;<=>?@[]^`{|}~\\')
-encoded_output = encoding_doc(output_tokenizer, intent)
-x = []
-for i in encoded_output:
-    x.append(i[0])
-encoded_output = x
-encoded_output = (np.array(encoded_output).reshape(len(encoded_output), 1))
-output_one_hot = OneHotEncoder(sparse=False).fit_transform(encoded_output)
-train_X, val_X, train_Y, val_Y = train_test_split(padded_doc, output_one_hot, test_size=0.2)
+# # for intent
+# output_tokenizer = create_tokenizer(unique_intent, filters='!"#$%&()*+,-/:;<=>?@[]^`{|}~\\')
+# encoded_output = encoding_doc(output_tokenizer, intent)
+# x = []
+# for i in encoded_output:
+#     x.append(i[0])
+# encoded_output = x
+# encoded_output = (np.array(encoded_output).reshape(len(encoded_output), 1))
+# output_one_hot = OneHotEncoder(sparse=False).fit_transform(encoded_output)
+# train_X, val_X, train_Y, val_Y = train_test_split(padded_doc, output_one_hot, test_size=0.2)
 
-max_features = 15000
-embedding_dim = 128
-sequence_length = 500
-inputs = tf.keras.Input(shape=(None,), dtype="int64")
+# max_features = 15000
+# embedding_dim = 128
+# sequence_length = 500
+# inputs = tf.keras.Input(shape=(None,), dtype="int64")
 
-x = layers.Embedding(max_features, embedding_dim)(inputs)
-x = layers.Dropout(0.5)(x)
-x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
-x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
-x = layers.GlobalMaxPooling1D()(x)
-x = layers.Dense(128, activation="relu")(x)
-x = layers.Dropout(0.5)(x)
-predictions = layers.Dense(39, activation="sigmoid", name="predictions")(x)
-model = tf.keras.Model(inputs, predictions)
-model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
-checkpoint = ModelCheckpoint('intent.h5', verbose=1, save_best_only=True, mode='min')
-model = load_model("intent.h5")
+# x = layers.Embedding(max_features, embedding_dim)(inputs)
+# x = layers.Dropout(0.5)(x)
+# x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
+# x = layers.Conv1D(128, 6, padding="same", activation="relu", strides=3)(x)
+# x = layers.GlobalMaxPooling1D()(x)
+# x = layers.Dense(128, activation="relu")(x)
+# x = layers.Dropout(0.5)(x)
+# predictions = layers.Dense(39, activation="sigmoid", name="predictions")(x)
+# model = tf.keras.Model(inputs, predictions)
+# model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+# checkpoint = ModelCheckpoint('intent.h5', verbose=1, save_best_only=True, mode='min')
+# model = load_model("intent.h5")
 
 
 # hist= model.fit(train_X,train_Y,epochs=105,batch_size=32,validation_data=(val_X,val_Y),callbacks=[checkpoint])
 
 
-def predictions(text):
-    clean = re.sub(r'[^ a-zA-Z0-9]', " ", text)
-    test_word = word_tokenize(clean)
-    test_word = [w.lower() for w in test_word]
-    test_ls = word_tokenizer.texts_to_sequences(test_word)
-    # Check for unknown words
-    if [] in test_ls:
-        test_ls = list(filter(None, test_ls))
-    test_ls = np.array(test_ls).reshape(1, len(test_ls))
-    x = padding_doc(test_ls, max_length)
-    pred = model.predict(x)
-    return pred
+# def predictions(text):
+#     clean = re.sub(r'[^ a-zA-Z0-9]', " ", text)
+#     test_word = word_tokenize(clean)
+#     test_word = [w.lower() for w in test_word]
+#     test_ls = word_tokenizer.texts_to_sequences(test_word)
+#     # Check for unknown words
+#     if [] in test_ls:
+#         test_ls = list(filter(None, test_ls))
+#     test_ls = np.array(test_ls).reshape(1, len(test_ls))
+#     x = padding_doc(test_ls, max_length)
+#     pred = model.predict(x)
+#     return pred
 
 
 def get_final_output(pred, classes):
@@ -228,14 +228,16 @@ webbrowser.get('chrome')
 
 
 def main(command):
-    intent, confidence = get_final_output(predictions(command), unique_intent)
-    print(intent) if confidence >= 0.7 else print('unknown', intent, confidence)
+    #intent, confidence = get_final_output(predictions(command), unique_intent)
+    #print(intent) if confidence >= 0.7 else print('unknown', intent, confidence)
     logic = ''
-    if command == "UNKNOWN_COMMAND":
-        error_list = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
-        speak(random.choice(error_list))
+    # if command == "UNKNOWN_COMMAND":
+    #     error_list = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
+    #     speak(random.choice(error_list))
         # Logic for executing tasks based on query
     # TODO: add more logic
+    if 'gesture control' in command:
+        logic='gesture'
     if 'wikipedia' in command or command.startswith('what is'):
         logic = 'wikipedia'
     elif 'youtube' in command:
@@ -249,9 +251,7 @@ def main(command):
         logic = 'google'
     elif 'stackoverflow' in command:
         logic = 'stackoverflow'
-    else:
-        error_list = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
-        speak(random.choice(error_list))
+    
     if logic == 'wikipedia':
         command = command.replace("search wikipedia for", "")
         command = command.replace("hey jarvis", "")
@@ -259,6 +259,9 @@ def main(command):
         speak('Searching Wikipedia for' + command + '...')
         results = wikipedia.summary(command, sentences=2)
         wiki("According to Wikipedia,\n" + results)
+        
+    elif logic == 'gesture':
+        os.system("python tests\\hand-rec.py")
     elif logic == 'youtube':
         net("https://www.youtube.com")
     elif logic == 'google':
@@ -301,6 +304,9 @@ def main(command):
         except Exception as e:
             print(e)
             speak("ERROR")
+    else:
+        error_list = ["Sir, can you please say that again please?", " I haven\'t quite caught that.", "Excuse me?"]
+        speak(random.choice(error_list))
 
 
 if __name__ == "__main__":
