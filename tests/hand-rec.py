@@ -17,7 +17,7 @@ import pyautogui as pg
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 mpDraw = mp.solutions.drawing_utils
-
+pg.FAILSAFE=False
 # def mediapipe_detection(image, model):
 # 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # COLOR CONVERSION BGR 2 RGB
 # 	image.flags.writeable = False				 # Image is no longer writable
@@ -62,6 +62,17 @@ cap = cv2.VideoCapture(0)
 # Set mediapipe model
 # with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
 
+def video2screenmapping(cx, cy):
+    print(cx,cy)
+    sx = pg.size()[0]*cx*2-pg.size()[0]/2
+    sy = pg.size()[1]*cy*2-pg.size()[1]/2
+    print(sx,sy,pg.size()[0])
+    sx=min(pg.size()[0]-1,max(sx,1))
+    sy=min(pg.size()[1]-1,max(sy,1))
+    print(sx,sy,pg.size()[0])
+    return (sx,sy)
+
+
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -81,31 +92,38 @@ while cap.isOpened():
                 landmarks.append([lm.x, lm.y])
         # print(landmarks[8],'\t',landmarks[12])
 
-        coordinates = [[landmarks[8][0], landmarks[8][1]], [landmarks[12][0], landmarks[12][1]]]
+        f1,f2=4,12
+        '''
+        4 for thumb
+        8 for index finger
+        12 for middle finger
+        '''
+        coordinates = [[landmarks[f1][0], landmarks[f1][1]], [landmarks[f2][0], landmarks[f2][1]]]
         
         #calculate distance between index and middle finger tip
-        dx=landmarks[8][0]-landmarks[12][0]
-        dy=landmarks[8][1]-landmarks[12][1]
+        dx=landmarks[f1][0]-landmarks[f2][0]
+        dy=landmarks[f1][1]-landmarks[f2][1]
         dist=(dx**2+dy**2)**0.5
-        
+        '''
         dx2=landmarks[5][0]-landmarks[9][0]
         dy2=landmarks[5][1]-landmarks[9][1]
         dist2=(dx2**2+dy2**2)**0.5
-        
+        '''
         
         # number 8 is the tip of the index finger
         # 12 is the tip of the middle finger
 
-        cx = pg.size()[0] * landmarks[8][0]
-        cy = pg.size()[1] * landmarks[8][1]
+        # mouse pointing to middle point of the two fingers
+        cx = (landmarks[f1][0]+landmarks[f2][0])/2
+        cy = (landmarks[f1][1]+landmarks[f2][1])/2
 
-        pg.moveTo(cx, cy)
-        '''
+        pg.moveTo(video2screenmapping(cx, cy))
+
         if dist<=0.05:
             pg.mouseDown()
         else:
             pg.mouseUp()
-        '''
+
     point_size = 1
     point_color = (0, 255, 0)  # BGR
     thickness = 4  # 0 、4、8
