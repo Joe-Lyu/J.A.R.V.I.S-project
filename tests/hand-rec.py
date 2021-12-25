@@ -9,7 +9,7 @@ Created on Sat Dec 25 22:28:28 2021
 import cv2
 import mediapipe as mp
 import pyautogui as pg
-from pynput.mouse import Listener
+
 
 
 
@@ -91,17 +91,23 @@ while cap.isOpened():
         dx=landmarks[8][0]-landmarks[12][0]
         dy=landmarks[8][1]-landmarks[12][1]
         dist=(dx**2+dy**2)**0.5
-        print("Distance between fingers:",dist)
+        
+        dx2=landmarks[5][0]-landmarks[9][0]
+        dy2=landmarks[5][1]-landmarks[9][1]
+        dist2=(dx2**2+dy2**2)**0.5
+        
         
         # number 8 is the tip of the index finger
         # 12 is the tip of the middle finger
+        # 5 is the base of the index finger
+        #9 is the base of the middle finger
         
         cx=pg.size()[0]*landmarks[8][0]
         cy=pg.size()[1]*landmarks[8][1]
         
         pg.moveTo(cx,cy)
         
-        if dist<=0.05:
+        if dist<dist2: #index and middle fingers held together
             pg.mouseDown()
         else:
             pg.mouseUp()
