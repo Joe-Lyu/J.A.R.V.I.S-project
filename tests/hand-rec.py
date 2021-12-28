@@ -12,7 +12,9 @@ import pyautogui as pg
 import mouse
 # mp_holistic = mp.solutions.holistic # Holistic model
 # mp_drawing = mp.solutions.drawing_utils # Drawing utilities
-
+import win32com
+import win32con
+import win32gui
 
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
@@ -163,7 +165,7 @@ while cap.isOpened():
             mouse.release('left')
 
             print("no contact")
-        if dist_1_2<dist_1_2_root:
+        if dist_1_2<dist_1_2_root*1.2:
             mouse.click()
             print("click")
         mouse.move(cursorpos[0],cursorpos[1], absolute=True,duration=0.05)
@@ -182,7 +184,17 @@ while cap.isOpened():
         # print(coor)
         cv2.circle(frame, (int(coor[0] * x), int(coor[1] * y)), point_size, point_color, thickness)
 
-    cv2.imshow('OpenCV Feed', frame)
+    window_name = 'OpenCV Feed'
+    cv2.imshow(window_name, frame)
+    print("置顶窗口")
+    hwnd = win32gui.FindWindow(None, window_name)
+    # 窗口需要正常大小且在后台，不能最小化
+    win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL)
+    win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0,
+                          win32con.SWP_NOMOVE | win32con.SWP_NOACTIVATE | win32con.SWP_NOOWNERZORDER | win32con.SWP_SHOWWINDOW | win32con.SWP_NOSIZE)
+    # 取消置顶
+    # win32gui.SetWindowPos(hwnd, win32.HWND_NOTOPMOST, 0, 0, 0, 0,win32con.SWP_SHOWWINDOW|win32con.SWP_NOSIZE|win32con.SWP_NOMOVE)
+
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
 cap.release()
