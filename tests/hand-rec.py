@@ -97,7 +97,9 @@ while cap.isOpened():
                 landmarks.append([lm.x, lm.y, lm.z])
         # print(landmarks[8],'\t',landmarks[12])
 
-        f1,f2=4,12
+        f0,f1,f2=4,8,12
+        f0_root,f1_root,f2_root = 1,5,9
+
         '''
         4 for thumb
         8 for index finger
@@ -118,17 +120,28 @@ while cap.isOpened():
         # dy=landmarks[8][1]-landmarks[12][1]
         # dz=landmarks[8][2]-landmarks[12][2]
         # dist=(dx**2+dy**2)
-        
-        dx=landmarks[8][0]-landmarks[4][0]
-        dy=landmarks[8][1]-landmarks[4][1]
-        dz=landmarks[8][2]-landmarks[4][2]
-        dist=(dx**2+dy**2)
-        
-        #'''
-        dx2=landmarks[5][0]-landmarks[1][0]
-        dy2=landmarks[5][1]-landmarks[1][1]
-        dz2=landmarks[5][2]-landmarks[1][2]
-        dist2=(dx2**2+dy2**2)
+
+        dx = landmarks[f0][0] - landmarks[f1][0]
+        dy = landmarks[f0][1] - landmarks[f1][1]
+        dz = landmarks[f0][2] - landmarks[f1][2]
+        dist_0_1 = (dx ** 2 + dy ** 2)
+
+        dx = landmarks[f0_root][0] - landmarks[f1_root][0]
+        dy = landmarks[f0_root][1] - landmarks[f1_root][1]
+        dz = landmarks[f0_root][2] - landmarks[f1_root][2]
+        dist_0_1_root = (dx ** 2 + dy ** 2)
+
+        dx = landmarks[f2][0] - landmarks[f1][0]
+        dy = landmarks[f2][1] - landmarks[f1][1]
+        dz = landmarks[f2][2] - landmarks[f1][2]
+        dist_1_2 = (dx ** 2 + dy ** 2)
+
+        dx = landmarks[f2_root][0] - landmarks[f1_root][0]
+        dy = landmarks[f2_root][1] - landmarks[f1_root][1]
+        dz = landmarks[f2_root][2] - landmarks[f1_root][2]
+        dist_1_2_root = (dx ** 2 + dy ** 2)
+
+
         #'''
         
         # number 8 is the tip of the index finger
@@ -143,13 +156,16 @@ while cap.isOpened():
         cursorpos=video2screenmapping(cx, cy)
 
     
-        if dist<dist2/6:
+        if dist_0_1<dist_0_1_root/6:
             mouse.hold('left')
             print("Contact")
-
         else:
             mouse.release('left')
+
             print("no contact")
+        if dist_1_2<dist_1_2_root:
+            mouse.click()
+            print("click")
         mouse.move(cursorpos[0],cursorpos[1], absolute=True,duration=0.05)
         
 
