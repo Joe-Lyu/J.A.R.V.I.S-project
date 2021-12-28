@@ -78,7 +78,10 @@ while cap.isOpened():
     if not ret:
         print("can't receive frame")
         continue
-    # x,y,c=frame.shape
+    
+    
+    x,y,c=frame.shape
+    
     frame = cv2.flip(frame, 1)
     # image, results = mediapipe_detection(frame, holistic)
     framergb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -98,28 +101,40 @@ while cap.isOpened():
         8 for index finger
         12 for middle finger
         '''
-        coordinates = [[landmarks[f1][0], landmarks[f1][1]], [landmarks[f2][0], landmarks[f2][1]]]
+        #coordinates = [[landmarks[f1][0], landmarks[f1][1]], [landmarks[f2][0], landmarks[f2][1]]]
+        coordinates = [[landmarks[8][0], landmarks[8][1]], [landmarks[12][0], landmarks[12][1]]]
+
         
         #calculate distance between index and middle finger tip
+        '''
         dx=landmarks[f1][0]-landmarks[f2][0]
         dy=landmarks[f1][1]-landmarks[f2][1]
-        dist=(dx**2+dy**2)**0.5
+        dist=(dx**2+dy**2)
         '''
+        
+        dx=landmarks[8][0]-landmarks[12][0]
+        dy=landmarks[8][1]-landmarks[12][1]
+        dist=(dx**2+dy**2)
+        
+        #'''
         dx2=landmarks[5][0]-landmarks[9][0]
         dy2=landmarks[5][1]-landmarks[9][1]
-        dist2=(dx2**2+dy2**2)**0.5
-        '''
+        dist2=(dx2**2+dy2**2)
+        #'''
         
         # number 8 is the tip of the index finger
         # 12 is the tip of the middle finger
 
         # mouse pointing to middle point of the two fingers
+        '''
         cx = (landmarks[f1][0]+landmarks[f2][0])/2
         cy = (landmarks[f1][1]+landmarks[f2][1])/2
+        '''
+        cx,cy=landmarks[8][0],landmarks[8][1]
 
         pg.moveTo(video2screenmapping(cx, cy))
 
-        if dist<=0.05:
+        if dist<dist2:
             pg.mouseDown()
         else:
             pg.mouseUp()
@@ -129,13 +144,13 @@ while cap.isOpened():
     thickness = 4  # 0 、4、8
 
 
-    Display_w, Display_h = 600, 400
+    #Display_w, Display_h = 600, 400
     # draw_styled_landmarks(image, results)
-    frame = cv2.resize(frame, (Display_w, Display_h))
+    #frame = cv2.resize(frame, (Display_w, Display_h))
 
     for coor in coordinates:
         # print(coor)
-        cv2.circle(frame, (int(coor[0] * Display_w), int(coor[1] * Display_h)), point_size, point_color, thickness)
+        cv2.circle(frame, (int(coor[0] * x), int(coor[1] * y)), point_size, point_color, thickness)
 
     cv2.imshow('OpenCV Feed', frame)
     if cv2.waitKey(10) & 0xFF == ord('q'):
