@@ -15,7 +15,8 @@ import mouse
 import win32com
 import win32con
 import win32gui
-
+from pynput.keyboard import Key, Controller
+keyboard=Controller()
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 mpDraw = mp.solutions.drawing_utils
@@ -118,6 +119,15 @@ while cap.isOpened():
         dist=(dx**2+dy**2)
         '''
         
+        joytop,joybottom=landmarks[5],landmarks[17]
+        roll_slope=(joytop[1]-joybottom[1])/(joytop[0]-joybottom[0])
+        pitch_slope=(joytop[1]-joybottom[1])/(joytop[2]-joybottom[2])
+        print("roll: ",roll_slope,'\t',"pitch: ",pitch_slope)
+        
+        
+        
+        
+        
         # dx=landmarks[8][0]-landmarks[12][0]
         # dy=landmarks[8][1]-landmarks[12][1]
         # dz=landmarks[8][2]-landmarks[12][2]
@@ -157,18 +167,34 @@ while cap.isOpened():
         cx,cy=(landmarks[8][0]+landmarks[4][0])/2,(landmarks[8][1]+landmarks[4][1])/2
         cursorpos=video2screenmapping(cx, cy)
 
-    
-        if dist_0_1<dist_0_1_root/6:
-            mouse.hold('left')
-            print("Contact")
-        else:
-            mouse.release('left')
+        # MOUSE CONTROLS
+        # if dist_0_1<dist_0_1_root/6:
+        #     mouse.hold('left')
+        #     print("Contact")
+        # else:
+        #     mouse.release('left')
 
-            print("no contact")
-        if dist_1_2<dist_1_2_root*1.2:
-            mouse.click()
-            print("click")
-        mouse.move(cursorpos[0],cursorpos[1], absolute=True,duration=0.05)
+        #     print("no contact")
+        # if dist_1_2<dist_1_2_root*1.2:
+        #     mouse.click()
+        #     print("click")
+        # mouse.move(cursorpos[0],cursorpos[1], absolute=True,duration=0.05)
+        
+        # JOYSTICK CONTROLS
+        if roll_slope>-7 and roll_slope<0:
+            keyboard.press('d')
+        elif roll_slope<3 and roll_slope>0:
+            keyboard.press('a')
+        else:
+            keyboard.release('a')
+            keyboard.release('d')
+        if pitch_slope<5 and pitch_slope>0:
+            keyboard.press('w')
+        elif pitch_slope>-5 and pitch_slope<0:
+            keyboard.press('s')
+        else:
+            keyboard.release('w')
+            keyboard.release('s')
         
 
     point_size = 1
@@ -186,7 +212,7 @@ while cap.isOpened():
 
     window_name = 'OpenCV Feed'
     cv2.imshow(window_name, frame)
-    print("置顶窗口")
+    #print("置顶窗口")
     hwnd = win32gui.FindWindow(None, window_name)
     # 窗口需要正常大小且在后台，不能最小化
     win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL)
