@@ -120,9 +120,11 @@ while cap.isOpened():
         '''
         
         joytop,joybottom=landmarks[5],landmarks[17]
+        joyfront,joyback=landmarks[9],landmarks[0]
         roll_slope=(joytop[1]-joybottom[1])/(joytop[0]-joybottom[0])
         pitch_slope=(joytop[1]-joybottom[1])/(joytop[2]-joybottom[2])
-        print("roll: ",roll_slope,'\t',"pitch: ",pitch_slope)
+        yaw_slope=(joyfront[2]-joyback[2]/(joyfront[0]-joyback[0]))
+        print("roll: ",roll_slope,'\t',"pitch: ",pitch_slope,'\t',"yaw: ",yaw_slope)
         
         
         
@@ -181,16 +183,25 @@ while cap.isOpened():
         # mouse.move(cursorpos[0],cursorpos[1], absolute=True,duration=0.05)
         
         # JOYSTICK CONTROLS
-        if roll_slope>-7 and roll_slope<0:
-            keyboard.press('d')
+        if roll_slope>-4 and roll_slope<0:
+            keyboard.press('e')
         elif roll_slope<3 and roll_slope>0:
+            keyboard.press('q')
+        else:
+            keyboard.release('q')
+            keyboard.release('e')
+        
+        if yaw_slope<-0.2:
             keyboard.press('a')
+        elif yaw_slope>0:
+            keyboard.press('d')
         else:
             keyboard.release('a')
             keyboard.release('d')
-        if pitch_slope<5 and pitch_slope>0:
+        
+        if pitch_slope<6 and pitch_slope>0:
             keyboard.press('w')
-        elif pitch_slope>-5 and pitch_slope<0:
+        elif pitch_slope>-4 and pitch_slope<0:
             keyboard.press('s')
         else:
             keyboard.release('w')
