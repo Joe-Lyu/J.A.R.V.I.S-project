@@ -15,12 +15,16 @@ import mouse
 import win32com
 import win32con
 import win32gui
+import time
 from pynput.keyboard import Key, Controller
 keyboard=Controller()
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
 mpDraw = mp.solutions.drawing_utils
 pg.FAILSAFE=False
+
+def get_time():
+    return int(time.time()*1000)%1000
 # def mediapipe_detection(image, model):
 # 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # COLOR CONVERSION BGR 2 RGB
 # 	image.flags.writeable = False				 # Image is no longer writable
@@ -63,7 +67,9 @@ pg.FAILSAFE=False
 # Main function
 cap = cv2.VideoCapture(0)
 # Set mediapipe model
-# with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
+
+def get_angle(coor):
+    
 
 def video2screenmapping(cx, cy):
     #print(cx,cy)
@@ -81,7 +87,7 @@ while cap.isOpened():
         print("can't receive frame")
         continue
     
-    
+
     x,y,c=frame.shape
     
     frame = cv2.flip(frame, 1)
@@ -124,12 +130,11 @@ while cap.isOpened():
         roll_slope=(joytop[1]-joybottom[1])/(joytop[0]-joybottom[0])
         pitch_slope=(joytop[1]-joybottom[1])/(joytop[2]-joybottom[2])
         yaw_slope=(joyfront[2]-joyback[2]/(joyfront[0]-joyback[0]))
-        print("roll: ",roll_slope,'\t',"pitch: ",pitch_slope,'\t',"yaw: ",yaw_slope)
-        
-        
-        
-        
-        
+
+
+
+
+
         # dx=landmarks[8][0]-landmarks[12][0]
         # dy=landmarks[8][1]-landmarks[12][1]
         # dz=landmarks[8][2]-landmarks[12][2]
@@ -155,9 +160,6 @@ while cap.isOpened():
         dz = landmarks[f2_root][2] - landmarks[f1_root][2]
         dist_1_2_root = (dx ** 2 + dy ** 2)
 
-
-        #'''
-        
         # number 8 is the tip of the index finger
         # 12 is the tip of the middle finger
 
@@ -182,32 +184,51 @@ while cap.isOpened():
         #     print("click")
         # mouse.move(cursorpos[0],cursorpos[1], absolute=True,duration=0.05)
         
+        '''
+        Current goal: e.g. roll, pitch and yaw have different levels, or intensities.
+        The level is determined from a pre-defined slope range.
+        Level 0: no input.
+        Level 1: press assigned key every 300ms, simulating a gentle turn.
+        Level 2: press assigned key every frame, simulating a full turn.
+        More levels can be added if the landmarks are calculated accurately enough.
+        '''
+        #TODO: add different levels of control
         # JOYSTICK CONTROLS
         if roll_slope>-4 and roll_slope<0:
-            keyboard.press('e')
+            roll="right"
+        #     keyboard.press('e')
         elif roll_slope<3 and roll_slope>0:
-            keyboard.press('q')
+            roll="left"
+        #     keyboard.press('q')
         else:
-            keyboard.release('q')
-            keyboard.release('e')
+            roll="None"
+        #     keyboard.release('q')
+        #     keyboard.release('e')
         
+        #FIXME: yawing can be calculated from a different slope, the current one is physically akward.
         if yaw_slope<-0.2:
-            keyboard.press('a')
+            yaw="left"
+        #     keyboard.press('a')
         elif yaw_slope>0:
-            keyboard.press('d')
+            yaw="right"
+        #     keyboard.press('d')
         else:
-            keyboard.release('a')
-            keyboard.release('d')
+            yaw="None"
+        #     keyboard.release('a')
+        #     keyboard.release('d')
         
         if pitch_slope<6 and pitch_slope>0:
-            keyboard.press('w')
+            pitch="forward"
+        #     keyboard.press('w')
         elif pitch_slope>-4 and pitch_slope<0:
-            keyboard.press('s')
+            pitch="backward"
+        #     keyboard.press('s')
         else:
-            keyboard.release('w')
-            keyboard.release('s')
-        
+            pitch="None"
+        #     keyboard.release('w')
+        #     keyboard.release('s')
 
+        print("roll: ",roll,round(roll_slope,2),"\tyaw: ",yaw,round(yaw_slope,2),"\tpitch: ",pitch,round(pitch_slope,2))
     point_size = 1
     point_color = (0, 255, 0)  # BGR
     thickness = 4  # 0 、4、8
