@@ -15,10 +15,9 @@ Our goal is to create:
 * New control methods for your device: wave your hands in the air to control the cursor, genuine Iron Man style, or play Kerbal Space Program on a joystick made of thin air, with holistic gesture recognition. Camera not included. 
 
 
- <figure class="video_container">
- <iframe src="https://user-images.githubusercontent.com/68528026/147874031-43d739ed-4f3a-45b3-871a-f4442d1230a3.mp4" frameborder="0" allowfullscreen="true"> </iframe>
+<figure class="video_container">
+  <iframe src="https://user-images.githubusercontent.com/68528026/147874031-43d739ed-4f3a-45b3-871a-f4442d1230a3.mp4" frameborder="0" allowfullscreen="true"> </iframe>
 </figure>
-
 
 * An ultimate device made of all your available devices! Play mobile games with that monster of a graphics card on your PC or train nerual networks with a smartwatch, JARVIS can connect all the computation capabilities you have, and share your workload using decentralized and distributed computing. If you have more than one device, that is. If not, perhaps you can contribute a small portion of computing power to JARVIS's server, and get access to what is essentially a supercomputer made up of portions of thousands of devices (at least we hope so)!
 * A tool for us developers! Let JARVIS type the boring, repeating lines of code for you, while you focus on the important parts (such as how to make this function work...). Organize your datasets, translate Python to Java and back, convert between .json and .csv files without having to write a mini-program! 
