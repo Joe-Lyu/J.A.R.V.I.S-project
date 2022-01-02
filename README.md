@@ -31,7 +31,7 @@ Of course, most of the goals above has not been realized yet. But we hope to del
 * TBA
 
 ## Contributors
-* Joe Lyu (the founder of this projects and owner of this repo, avid KSP player)
+* Joe Lyu (founder of this project and owner of this repo, avid KSP player)
 * Tom Wang (co-founder)
 * Harry Wu (graphics design)
 * Caelyn Wang (graphics design, she created JARVIS's logo above, no relation to Tom)
