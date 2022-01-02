@@ -6,15 +6,14 @@ This is project to create J.A.R.V.I.S. (or you can stylize it without the dots, 
 JARVIS, both in the MCU and (hopefully) in our project, extends to a multitude of different functions and abilities. 
 Our goal is to create:
 * A conversational voice (and text) assistant that has an advanced level of natural language processing (NLP) and understanding (NLU). JARVIS has a personality: he is generally emotionless, but likes his slightly sarcastic jokes and comments. And, of course, we hope he sounds like Paul Bettany.
-<p align="center">
-    ![06f3f307602d9407151029733fadf8486c499f05r1-245-245_00](https://user-images.githubusercontent.com/68528026/147873142-0566a836-24c8-4588-a5f3-c399f6d18d6f.gif)
-</p>
+
+<center> https://user-images.githubusercontent.com/68528026/147873142-0566a836-24c8-4588-a5f3-c399f6d18d6f.gif </center>
+
+
 * A new way of harnessing your computer's capability: solve symbolic integrals and differential equations, graph functions, know the weather, navigate to the nearest Starbucks, automate mouse and keyboard movements (perhaps to snatch tickets?), dictate your texts, search for a song whose name you can't quite remember, play it while showing its lyrics, all with a few keypresses (or moving your lips). Or you could just look up something (and quickly fall into a rabbit hole) on Wikipedia.
 * New control methods for your device: wave your hands in the air to control the cursor, genuine Iron Man style, or play Kerbal Space Program on a joystick made of thin air, with holistic gesture recognition. Camera not included. 
 
-<p align="center">
-    https://user-images.githubusercontent.com/68528026/147874031-43d739ed-4f3a-45b3-871a-f4442d1230a3.mp4
-</p>
+<center> https://user-images.githubusercontent.com/68528026/147874031-43d739ed-4f3a-45b3-871a-f4442d1230a3.mp4 </center>
 
 * An ultimate device made of all your available devices! Play mobile games with that monster of a graphics card on your PC or train nerual networks with a smartwatch, JARVIS can connect all the computation capabilities you have, and share your workload using decentralized and distributed computing. If you have more than one device, that is. If not, perhaps you can contribute a small portion of computing power to JARVIS's server, and get access to what is essentially a supercomputer made up of portions of thousands of devices (at least we hope so)!
 * A tool for us developers! Let JARVIS type the boring, repeating lines of code for you, while you focus on the important parts (such as how to make this function work...). Organize your datasets, translate Python to Java and back, convert between .json and .csv files without having to write a mini-program! 
