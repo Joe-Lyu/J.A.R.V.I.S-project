@@ -68,7 +68,7 @@ def get_time():
 cap = cv2.VideoCapture(0)
 # Set mediapipe model
 
-def get_angle(coor):
+#def get_angle(coor):
     
 
 def video2screenmapping(cx, cy):
@@ -81,6 +81,7 @@ def video2screenmapping(cx, cy):
     #print(sx,sy,pg.size()[0])
     return (sx,sy)
 
+print('\n\n')
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -195,25 +196,25 @@ while cap.isOpened():
         #TODO: add different levels of control
         # JOYSTICK CONTROLS
         if roll_slope>-4 and roll_slope<0:
-            roll="right"
+            roll="RIGHT"
         #     keyboard.press('e')
         elif roll_slope<3 and roll_slope>0:
-            roll="left"
+            roll="LEFT"
         #     keyboard.press('q')
         else:
-            roll="None"
+            roll="NONE"
         #     keyboard.release('q')
         #     keyboard.release('e')
         
         #FIXME: yawing can be calculated from a different slope, the current one is physically akward.
         if yaw_slope<-0.2:
-            yaw="left"
+            yaw="LEFT"
         #     keyboard.press('a')
         elif yaw_slope>0:
-            yaw="right"
+            yaw="RIGHT"
         #     keyboard.press('d')
         else:
-            yaw="None"
+            yaw="NONE"
         #     keyboard.release('a')
         #     keyboard.release('d')
         
@@ -224,11 +225,13 @@ while cap.isOpened():
             pitch="backward"
         #     keyboard.press('s')
         else:
-            pitch="None"
+            pitch="NONE"
         #     keyboard.release('w')
         #     keyboard.release('s')
-
-        print("roll: ",roll,round(roll_slope,2),"\tyaw: ",yaw,round(yaw_slope,2),"\tpitch: ",pitch,round(pitch_slope,2))
+        
+        
+        update="roll: "+roll+' '+str(round(roll_slope,2))+"\tyaw: "+yaw+' '+str(round(yaw_slope,2))+"\tpitch: "+pitch+' '+str(round(pitch_slope,2))
+        print('\r{}'.format(update), end='\r')
     point_size = 1
     point_color = (0, 255, 0)  # BGR
     thickness = 4  # 0 、4、8
