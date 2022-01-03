@@ -16,7 +16,8 @@ import win32com
 import win32con
 import win32gui
 import time
-from pynput.keyboard import Key, Controller
+from pynput.keyboard import Controller
+import math
 keyboard=Controller()
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
@@ -81,13 +82,18 @@ def video2screenmapping(cx, cy):
     #print(sx,sy,pg.size()[0])
     return (sx,sy)
 
+
+fcount=0
 print('\n\n')
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         print("can't receive frame")
         continue
-    
+    if fcount!=9:
+        fcount+=1
+    else:
+        fcount=0
 
     x,y,c=frame.shape
     
@@ -132,6 +138,9 @@ while cap.isOpened():
         pitch_slope=(joytop[1]-joybottom[1])/(joytop[2]-joybottom[2])
         yaw_slope=(joyfront[2]-joyback[2]/(joyfront[0]-joyback[0]))
 
+        roll_angle=math.atan(roll_slope)/math.pi*180
+        pitch_angle=math.atan(pitch_slope)/math.pi*180
+        yaw_angle=math.atan(yaw_slope)/math.pi*180
 
 
 
@@ -195,18 +204,39 @@ while cap.isOpened():
         '''
         #TODO: add different levels of control
         # JOYSTICK CONTROLS
-        if roll_slope>-4 and roll_slope<0:
-            roll="RIGHT"
-        #     keyboard.press('e')
-        elif roll_slope<3 and roll_slope>0:
-            roll="LEFT"
-        #     keyboard.press('q')
+        # roll:  level 1 RIGHT:   >-80, <-60
+        #        level 2 RIGHT:   >-60, <0
+        #        level 1 LEFT:    <80, >60
+        #        level 2 LEFT:    <60, >0
+       
+        
+        if roll_angle>-80 and roll_angle<-60:
+            roll="GENTLE_RIGHT"
+            if fcount==5:
+                keyboard.press('e')
+            if fcount==0:
+                keyboard.release('e')
+                
+        elif roll_angle>-60 and roll_angle<0:
+            roll='FULL_RIGHT'
+            keyboard.press('e')
+            
+        if roll_angle<80 and roll_angle>60:
+            roll="GENTLE_LEFT"
+            if fcount==5:
+                keyboard.press('q')
+            if fcount==0:
+                keyboard.release('q')
+                
+        elif roll_angle<60 and roll_angle>0:
+            roll='FULL_RIGHT'
+            keyboard.press('q')
         else:
             roll="NONE"
-        #     keyboard.release('q')
-        #     keyboard.release('e')
+            keyboard.release('q')
+            keyboard.release('e')
         
-        #FIXME: yawing can be calculated from a different slope, the current one is physically akward.
+        #FIXME: yawing can be calculated from a different slope, the current one is physically awkward.
         if yaw_slope<-0.2:
             yaw="LEFT"
         #     keyboard.press('a')
@@ -218,19 +248,39 @@ while cap.isOpened():
         #     keyboard.release('a')
         #     keyboard.release('d')
         
-        if pitch_slope<6 and pitch_slope>0:
-            pitch="forward"
-        #     keyboard.press('w')
-        elif pitch_slope>-4 and pitch_slope<0:
-            pitch="backward"
-        #     keyboard.press('s')
+        # pitch: level 1 FORWARD: <80, >70
+        #        level 2 FORWARD: <70, >0
+        #        level 1 BACKWARD:>-80, <-70
+        #        level 2 BACKWARD:>-70, <0
+        
+        if pitch_angle<80 and pitch_angle>70:
+            pitch="GENTLE_FORWARD"
+            if fcount==5:
+                keyboard.press('w')
+            if fcount==0:
+                keyboard.release('w')
+                
+        elif pitch_angle<70 and pitch_angle>0:
+            pitch="FULL_FORWARD"
+            keyboard.press('w')
+            
+        if pitch_angle>-80 and pitch_angle<-70:
+            pitch="GENTLE_BACKWARD"
+            if fcount==5:
+                keyboard.press('s')
+            if fcount==0:
+                keyboard.release('s')
+                
+        elif pitch_angle>-70 and pitch_angle<0:
+            pitch="FULL_BACKWARD"
+            keyboard.press('s')
         else:
             pitch="NONE"
-        #     keyboard.release('w')
-        #     keyboard.release('s')
+            keyboard.release('w')
+            keyboard.release('s')
         
         
-        update="roll: "+roll+' '+str(round(roll_slope,2))+"\tyaw: "+yaw+' '+str(round(yaw_slope,2))+"\tpitch: "+pitch+' '+str(round(pitch_slope,2))
+        update="roll: "+roll+' '+str(round(roll_angle,2))+"\tyaw: "+yaw+' '+str(round(yaw_angle,2))+"\tpitch: "+pitch+' '+str(round(pitch_angle,2))
         print('\r{}'.format(update), end='\r')
     point_size = 1
     point_color = (0, 255, 0)  # BGR
@@ -256,7 +306,7 @@ while cap.isOpened():
     # 取消置顶
     # win32gui.SetWindowPos(hwnd, win32.HWND_NOTOPMOST, 0, 0, 0, 0,win32con.SWP_SHOWWINDOW|win32con.SWP_NOSIZE|win32con.SWP_NOMOVE)
 
-    if cv2.waitKey(10) & 0xFF == ord('q'):
+    if cv2.waitKey(10) & 0xFF == ord('p'):
         break
 cap.release()
 
